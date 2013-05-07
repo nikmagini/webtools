@@ -1,0 +1,1356 @@
+Installation instructions for the webtools frontend machines
+============================================================
+
+Repeat for vocms08.cern.ch, vocms09.cern.ch, vocms42.cern.ch, vocms43.cern.ch
+
+## 0 Creating the directory structure on the server:
+
+    ssh root@vocms08.cern.ch
+    export WORKDIR=/data/frontend
+    mkdir -p $WORKDIR
+    chmod 755 $WORKDIR
+    chown cmsweb:nobody $WORKDIR
+    export FRONTEND_MACHINE=vocms08.cern.ch
+    export FRONTEND_PORT=80
+    export SSL_FRONTEND_PORT=443
+
+Moreover make sure that the frontend firewall has the following lines in the 
+file `/etc/sysconfig/iptables`
+
+    -A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport $FRONTEND_PORT -j ACCEPT
+    -A RH-Firewall-1-INPUT -m state --state NEW -m tcp -p tcp --dport $SSL_FRONTEND_PORT -j ACCEPT
+
+If you need to be change, such a file, make sure you restart the firewall.
+
+    service iptables restart
+    
+## 1
+
+Working as `cmsweb@vocms08.cern.ch`
+
+    sudo su - cmsweb
+
+### 1.1 Environment:
+
+    export FRONTEND_MACHINE=vocms08.cern.ch
+    export WORKDIR=/data/frontend
+    export ARCH=slc4_amd64_gcc345
+    export APACHE2_VERSION=2.2.8
+    export APACHE2_CONF_VERSION=1.4
+    export FRONTEND_PORT=80
+    export SSL_FRONTEND_PORT=443
+    export TEST_BACKEND_MACHINE=$FRONTEND_MACHINE
+    export TEST_BACKEND_PORT=7776
+    export APACHE2_FRONTEND_ROOT=$WORKDIR/htdocs
+    export FRONTEND_CERT=/etc/grid-security/hostcert.pem
+    export FRONTEND_KEY=/etc/grid-security/hostkey.pem
+    export LOG_LEVEL=3
+    export FRONTEND_DNS_NAME=cmsweb.cern.ch
+    export FRONTEND_DUMMY_PORT=8001
+    
+### 1.2 Installing apache2.2
+
+    mkdir -p $WORKDIR
+    wget -O$WORKDIR/bootstrap.sh http://cmsrep.cern.ch/cmssw/cms/bootstrap.sh
+    sh $WORKDIR/bootstrap.sh -architecture $ARCH -path $WORKDIR setup 
+    source $WORKDIR/$ARCH/external/apt/0.5.15lorg3.2-CMS19c/etc/profile.d/init.sh
+    apt-get install --assume-yes external+apache2+$APACHE2_VERSION
+    apt-get install --assume-yes cms+apache2-conf+$APACHE2_CONF_VERSION
+
+### 1.3 Running apache2:
+
+    source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh
+    perl -p -i -e "s/Listen 7000/Listen $FRONTEND_DUMMY_PORT/" $APACHE2_CONF_ROOT/conf/apache2.conf
+    $APACHE2_CONF_ROOT/bin/httpd -k start || echo "Error while starting apache" 
+    
+## 2. Trying out a simple web page:
+
+### 2.1 Creating a test page
+
+    mkdir -p $APACHE2_FRONTEND_ROOT
+    rm -f $APACHE2_FRONTEND_ROOT/index.html
+    echo "Hello world" > $APACHE2_FRONTEND_ROOT/index.html
+
+    
+### 2.2 Set up the test configuration 
+
+    rm -f $APACHE2_CONF_ROOT/apps.d/test.conf
+    cat <<\EOF > $APACHE2_CONF_ROOT/apps.d/test.conf
+    Listen 7776
+    <VirtualHost *:7776>
+    DocumentRoot @APACHE2_FRONTEND_ROOT@
+
+    <Directory />
+       Order allow,deny
+       Allow from all
+    </Directory>
+
+    </VirtualHost>
+    EOF
+
+    perl -p -i -e "s|\@(.*)\@|\$ENV{\$1}|" $APACHE2_CONF_ROOT/apps.d/test.conf
+
+### 2.3 Restart apache
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Test with:
+
+    wget -O- $FRONTEND_MACHINE:7776/ 2>/dev/null
+
+which should print out 'Hello world'.
+
+## 2.4 Setting up a second virtual host which acts as frontend:
+
+Generate the ca-bundle-client.crt:
+
+    [ -d /etc/grid-security/certificates ] || { echo 'Cannot find grid-security directory. Quitting.' && exit 1 ; }
+    gridcerts=/etc/grid-security/certificates # (where ever they are)
+    mkdir -p $APACHE2_FRONTEND_ROOT/conf
+    cat $gridcerts/*.[0-9] > $APACHE2_FRONTEND_ROOT/conf/ca-bundle-client.crt
+
+And create the configuration for the frontend:
+
+    rm -f $APACHE2_CONF_ROOT/apps.d/frontend.conf
+    cat <<\EOF > $APACHE2_CONF_ROOT/apps.d/frontend.conf
+    Listen @FRONTEND_PORT@
+    <VirtualHost *:@FRONTEND_PORT@>
+    DocumentRoot @APACHE2_FRONTEND_ROOT@
+    RewriteLog @APACHE2_CONF_ROOT@/logs/rewrites_log
+    RewriteLogLevel @LOG_LEVEL@
+    SSLEngine on
+    SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+
+    SSLCertificateFile @FRONTEND_CERT@
+    SSLCertificateKeyFile @FRONTEND_KEY@
+
+    SSLCACertificateFile  @APACHE2_FRONTEND_ROOT@/conf/ca-bundle-client.crt
+    #SSLCARevocationFile @APACHE2_FRONTEND_ROOT@/conf/ca-bundle-revocation.crl
+
+    RequestHeader set SSL_CLIENT_CERT %{SSL_CLIENT_CERT}e
+    RequestHeader set SSL_CLIENT_S_DN %{SSL_CLIENT_S_DN}e
+    RequestHeader set SSL_CLIENT_VERIFY %{SSL_CLIENT_VERIFY}e
+    RequestHeader set HTTPS %{HTTPS}e
+
+    <Directory  "/">
+      SSLRequireSSL
+      SSLVerifyDepth 10
+      SSLVerifyClient require
+      SSLOptions +StdEnvVars +StrictRequire +ExportCertData
+      SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
+      <FilesMatch "^testme$">
+       Options +ExecCGI
+       SetHandler cgi-script
+      </FilesMatch>
+     </Directory>
+
+    # Require authentication to the testservice
+    <LocationMatch "^/testservice.*">
+      SSLRequireSSL
+      SSLVerifyDepth 10
+      SSLVerifyClient require
+      SSLOptions +StdEnvVars +StrictRequire +ExportCertData
+      SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
+    </LocationMatch>
+
+    RewriteEngine  on
+
+    # This rule requires successful client verification to pass
+    # the request to the back-end server.  For LA-U:ENV trickery,
+    # please see the bugs here:
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=30464
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=21672
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=10434
+    # FIXME: SSL:SSL_CLIENT_VERIFY is always NONE for me at this point, while
+    #        it correctly returns SUCCESS in the backend. dunno... For the time
+    #        being I'll use HTTPS  
+    RewriteCond %{HTTPS}!= on
+    RewriteRule ^/testservice(.*) http://@TEST_BACKEND_MACHINE@:@TEST_BACKEND_PORT@$1 [P,L]
+
+    # Now refuse to process the rest of the requests to that path
+    RewriteRule ^/testservice(.*)$ - [F]
+
+    </VirtualHost>
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/apps.d/frontend.conf
+
+restart apache:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please do the following before continuing:" && echo "1 - ssh root@$FRONTEND_MACHINE" && echo "2 - Set the environment as documented in section 1.1" && echo "3 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh" && echo "4 - Please keep this ssh section oppened for further restart's"
+    $APACHE2_CONF_ROOT/bin/httpd -k stop
+    $APACHE2_CONF_ROOT/bin/httpd -k start
+
+* Since apache was first started as cmsweb, graceful (restart) won't work at this point. It is needed stop/start. For further restart's, graceful is enough.
+    
+you should see `Hello world` by pointing your browser to address given by:
+
+    echo https://$FRONTEND_DNS_NAME:$FRONTEND_PORT/testservice/
+
+## 2.5 Testing out the SSL headers.
+
+Now back to the backend configuration. Lassi has the following cgi script which 
+can be used to test if certs get recognized:
+
+    rm -f $APACHE2_FRONTEND_ROOT/testme
+    cat << \EOF > $APACHE2_FRONTEND_ROOT/testme 
+    #!/usr/bin/env perl
+
+    BEGIN { use strict; use warnings; $^W=1; }
+    use CGI qw(param header);
+
+    print header(-type=>'text/plain'),
+      "Environment:\n",
+      (map { "$_ = $ENV{$_}\n" } sort keys %ENV), "\n",
+
+      "Parameters:\n",
+      (map { "$_ = @{[param($_)]}\n" } param());
+    exit(0);
+    EOF
+
+    chmod 755 $APACHE2_FRONTEND_ROOT/testme
+
+You should now see that 
+
+    [ X`$APACHE2_FRONTEND_ROOT/testme | grep APACHE2_FRONTEND_ROOT | sed -e's/.*= //'` = X$APACHE2_FRONTEND_ROOT ] && echo Ok.
+    
+prints "Ok."
+
+We need then to change the test configuration like this in order to have it
+working:
+
+    rm -f $APACHE2_CONF_ROOT/apps.d/test.conf
+    cat <<\EOF > $APACHE2_CONF_ROOT/apps.d/test.conf
+    Listen 7776
+    <VirtualHost *:7776>
+    DocumentRoot @APACHE2_FRONTEND_ROOT@
+
+    <Directory />
+       Order allow,deny
+       Allow from all
+    </Directory>
+    <FilesMatch "^testme$">
+      # Set special options for processing the scripts directory
+      Options +ExecCGI
+      SetHandler perl-script
+      PerlResponseHandler ModPerl::Registry
+      PerlOptions +ParseHeaders
+      SetOutputFilter DEFLATE
+    </FilesMatch>
+    </VirtualHost>
+    EOF
+
+    perl -p -i -e "s|\@(.*)\@|\$ENV{\$1}|" $APACHE2_CONF_ROOT/apps.d/test.conf
+
+then restart:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+    
+To test that the script is working simply do:
+
+    [ X"`wget --no-check-certificate -SO- http://localhost:7776/testme 2>/dev/null | grep REQUEST_URI | sed -e 's/.*= //'`" = X/testme ] && echo Ok.
+
+
+## 3. Setting up a production environment
+
+The idea is that there are two virtual hosts, one listening at `$FRONTEND_PORT` 
+which does the normal, _http_, redirects, the other on `$SSL_FRONTEND_PORT`
+which is responsible for setting up the https redirections.
+
+    rm -f $APACHE2_CONF_ROOT/apps.d/ssl_frontend.conf
+    cat <<\EOF > $APACHE2_CONF_ROOT/apps.d/ssl_frontend.conf
+    Listen @SSL_FRONTEND_PORT@
+
+    <VirtualHost *:@SSL_FRONTEND_PORT@>
+    DocumentRoot @APACHE2_FRONTEND_ROOT@
+    RewriteLog @APACHE2_CONF_ROOT@/logs/rewrites_log
+    RewriteLogLevel @LOG_LEVEL@
+    SSLEngine on
+    SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+
+    SSLCertificateFile @FRONTEND_CERT@
+    SSLCertificateKeyFile @FRONTEND_KEY@
+
+    SSLCACertificateFile  @APACHE2_FRONTEND_ROOT@/conf/ca-bundle-client.crt
+    #SSLCARevocationFile @APACHE2_FRONTEND_ROOT@/conf/ca-bundle-revocation.crl
+
+    RequestHeader set SSL_CLIENT_CERT %{SSL_CLIENT_CERT}e
+    RequestHeader set SSL_CLIENT_S_DN %{SSL_CLIENT_S_DN}e
+    RequestHeader set SSL_CLIENT_VERIFY %{SSL_CLIENT_VERIFY}e
+    RequestHeader set HTTPS %{HTTPS}e
+
+    Include @APACHE2_CONF_ROOT@/conf/ssl_rewrites.d
+
+    </VirtualHost>
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/apps.d/ssl_frontend.conf
+
+And then create redirections for the test page.
+
+    #Directory for rewrite rules of the secure pages.
+    mkdir -p $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/
+
+    rm -f $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/test.conf
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/test.conf
+    # Require authentication to the test-service
+    <LocationMatch "^/test-service.*">
+      SSLRequireSSL
+      SSLVerifyDepth 10
+      SSLVerifyClient require
+      SSLOptions +StdEnvVars +StrictRequire +ExportCertData
+      SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
+    </LocationMatch>
+
+    RewriteEngine  on
+
+    # This rule requires successful client verification to pass
+    # the request to the back-end server.  For LA-U:ENV trickery,
+    # please see the bugs here:
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=30464
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=21672
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=10434
+    # FIXME: SSL:SSL_CLIENT_VERIFY is always NONE for me at this point, while
+    #        it correctly returns SUCCESS in the backend. dunno... For the time
+    #        being I'll use HTTPS  
+    RewriteCond %{HTTPS}!= on
+    RewriteRule ^/test-service(.*) http://@TEST_BACKEND_MACHINE@:@TEST_BACKEND_PORT@$1 [P,L]
+
+    # Now refuse to process the rest of the requests to that path
+    RewriteRule ^/test-service(.*) - [F]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/test.conf
+
+### 3.2 and the insecure server!
+
+Create directory for rewrite rules of the secure pages.
+
+    mkdir -p $APACHE2_CONF_ROOT/conf/rewrites.d/
+
+Create the configuration for the ssl-less frontend.
+
+    rm -f $APACHE2_CONF_ROOT/apps.d/frontend.conf
+    cat << \EOF > $APACHE2_CONF_ROOT/apps.d/frontend.conf
+    Listen @FRONTEND_PORT@
+
+    <VirtualHost *:@FRONTEND_PORT@>
+    SSLEngine off
+
+    DocumentRoot @APACHE2_FRONTEND_ROOT@
+    RewriteLog @APACHE2_CONF_ROOT@/logs/rewrites_log
+    RewriteLogLevel @LOG_LEVEL@
+
+    Include @APACHE2_CONF_ROOT@/conf/rewrites.d
+
+    </VirtualHost>
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/apps.d/frontend.conf
+
+    #Directory for rewrite rules of the secure pages.
+    mkdir -p $APACHE2_CONF_ROOT/conf/rewrites.d/
+
+    rm -f $APACHE2_CONF_ROOT/conf/rewrites.d/test.conf
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/test.conf
+    RewriteEngine  on
+    # Go to ssl page for testme
+    RewriteRule ^/testservice/testme$ https://@FRONTEND_MACHINE@:@SSL_FRONTEND_PORT@/testservice/testme [R,L]
+    RewriteRule ^/testservice($|/.*) http://@TEST_BACKEND_MACHINE@:@TEST_BACKEND_PORT@$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/test.conf
+
+To check that everything is working point your browser to the two urls:
+
+    echo https://$FRONTEND_DNS_NAME:$FRONTEND_PORT/testservice
+    echo https://$FRONTEND_DNS_NAME:$FRONTEND_PORT/testservice/testme
+
+They should give you an `Hello world` message and all the details about your 
+certificate.
+
+Setting up the services:
+=======================
+
+
+## DD
+
+Setting up the environment. Make sure this matches with the instance of DD which 
+you want to use.
+Make sure also sure you have already set the environment for the frontend server, 
+described in section 1.1. 
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+    export DD_PROD_PORT=8003
+    export DD_PROD_SERVER=cmswt.cern.ch
+    export DD_OLD_PORT=8004
+    export DD_OLD_SERVER=cmswt03.cern.ch
+    export DD_NEW_PORT=8005
+    export DD_NEW_SERVER=cmswt03.cern.ch
+    export DD_TEST_PORT=8007
+    export DD_TEST_SERVER=cmswttest.cern.ch
+    export DD_TEST2_PORT=8008
+    export DD_TEST2_SERVER=cmswttest.cern.ch
+    export DD_WTTEST_PORT=8003
+    export DD_WTTEST_SERVER=cmswttest.cern.ch
+    export DD_SSLWTTEST_PORT=8009
+    export DD_SSLWTTEST_SERVER=cmswttest.cern.ch
+    
+
+Now set up the redirection.
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/dbs.conf
+    <Location /dbs_discovery>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/dbs_discovery($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/dbs_discovery$1 [R,L]
+
+    RewriteRule ^/dbs_discovery_old($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/dbs_discovery_old$1 [R,L]
+    RewriteRule ^/dbs_discovery_new($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/dbs_discovery_new$1 [R,L]
+    RewriteRule ^/dbs_discovery_test($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/dbs_discovery_test$1 [R,L]
+    RewriteRule ^/dbs_discovery_test2($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/dbs_discovery_test2$1 [R,L]
+    RewriteRule ^/dbs_discovery_wttest($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/dbs_discovery_wttest$1 [R,L]
+    EOF
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/dbs.conf
+    <Location /dbs_discovery>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/dbs_discovery($|/.*) http://@DD_PROD_SERVER@:@DD_PROD_PORT@/DDServer$1 [P,L]
+
+    RewriteRule ^/dbs_discovery_old($|/.*) http://@DD_OLD_SERVER@:@DD_0LD_PORT@/DDServer$1 [P,L]
+    RewriteRule ^/dbs_discovery_new($|/.*) http://@DD_NEW_SERVER@:@DD_NEW_PORT@/DDServer$1 [P,L]
+    RewriteRule ^/dbs_discovery_test($|/.*) http://@DD_TEST_SERVER@:@DD_TEST_PORT@/DDServer$1 [P,L]
+    RewriteRule ^/dbs_discovery_test2($|/.*) http://@DD_TEST2_SERVER@:@DD_TEST2_PORT@/DDServer$1 [P,L]
+    RewriteRule ^/dbs_discovery_wttest($|/.*) http://@DD_WTTEST_SERVER@:@DD_WTTEST_PORT@/DDServer$1 [P,L]
+    RewriteRule https://cmswttest.cern.ch:8443/dbs_discovery_wttest($|/.*) http://@DD_SSLWTTEST_SERVER@:@DD_SSLWTTEST_PORT@/DDServer/$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/dbs.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/dbs.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dbs_discovery/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dbs_discovery_test/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dbs_discovery_wttest/
+    
+* Test Instances running right now: dbs_discovery_test, dbs_discovery_wttest.
+                   
+## SiteDB
+
+Setting up the environment. Make sure this matches with the instance of SiteDB 
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server, 
+described in section 1.1.
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+    export SITEDB_PROD_PORT=8055
+    export SITEDB_PROD_SERVER=cmswt03.cern.ch    
+    export SITEDB_TEST_PORT=8058
+    export SITEDB_TEST_SERVER=cmswttest.cern.ch
+
+Then create the configuration file:
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/sitedb.conf
+    <Location /sitedb>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/sitedb/sitedb($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/sitedb/sitedb$1 [R,L]
+    RewriteRule ^/sitedb($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/sitedb$1 [R,L]
+   
+    RewriteRule ^/sitedb_wttest/sitedb_wttest($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/sitedb_wttest/sitedb_wttest$1 [R,L] 
+    RewriteRule ^/sitedb_wttest($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/sitedb_wttest$1 [R,L]
+    EOF
+    
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/sitedb.conf
+    <Location /sitedb>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/sitedb/sitedb($|/.*) http://@SITEDB_PROD_SERVER@:@SITEDB_PROD_PORT@$1 [P,L]
+    RewriteRule ^/sitedb($|/.*) http://@SITEDB_PROD_SERVER@:@SITEDB_PROD_PORT@$1 [P,L]
+
+    RewriteRule ^/sitedb_wttest/sitedb_wttest($|/.*) http://@SITEDB_TEST_SERVER@:@SITEDB_TEST_PORT@$1 [P,L]
+    RewriteRule ^/sitedb_wttest($|/.*) http://@SITEDB_TEST_SERVER@:@SITEDB_TEST_PORT@$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/sitedb.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/sitedb.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the addresses given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/sitedb/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/sitedb/sitedb/
+
+## CondBD
+
+Setting up the environment. Make sure this matches with the instance of CondDB 
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server, 
+described in section 1.1.
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."  
+    export CONDDB_PROD_PORT=8079
+    export CONDDB_PROD_SERVER=cmswt03.cern.ch
+    export CONDDB_WTTEST_PORT=8070
+    export CONDDB_WTTEST_1_PORT=8071
+    export CONDDB_WTTEST_2_PORT=8072
+    export CONDDB_WTTEST_3_PORT=8073
+    export CONDDB_WTTEST_4_PORT=8074
+    export CONDDB_WTTEST_5_PORT=8075
+    export CONDDB_WTTEST_6_PORT=8076
+    export CONDDB_WTTEST_7_PORT=8077
+    export CONDDB_WTTEST_8_PORT=8078
+    export CONDDB_WTTEST_SERVER=cmswttest.cern.ch
+    
+    
+    
+
+Then create the configuration file:
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/conddb.conf
+    <Location /conddb>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/conddb($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb$1 [R,L]
+
+    RewriteRule ^/conddb_wttest($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest$1 [R,L]
+    RewriteRule ^/conddb_wttest_1($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_1$1 [R,L]
+    RewriteRule ^/conddb_wttest_2($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_2$1 [R,L]
+    RewriteRule ^/conddb_wttest_3($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_3$1 [R,L]
+    RewriteRule ^/conddb_wttest_4($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_4$1 [R,L]
+    RewriteRule ^/conddb_wttest_5($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_5$1 [R,L]
+    RewriteRule ^/conddb_wttest_6($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_6$1 [R,L]
+    RewriteRule ^/conddb_wttest_7($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_7$1 [R,L]
+    RewriteRule ^/conddb_wttest_8($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/conddb_wttest_8$1 [R,L]    
+    EOF
+    
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/conddb.conf
+    <Location /conddb>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/conddb($|/.*) http://@CONDDB_PROD_SERVER@:@CONDDB_PROD_PORT@$1 [P,L]
+
+    RewriteRule ^/conddb_wttest($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_1($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_1_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_2($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_2_PORT@$1 [P,L]  
+    RewriteRule ^/conddb_wttest_3($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_3_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_4($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_4_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_5($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_5_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_6($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_6_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_7($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_7_PORT@$1 [P,L]
+    RewriteRule ^/conddb_wttest_8($|/.*) http://@CONDDB_WTTEST_SERVER@:@CONDDB_WTTEST_8_PORT@$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/conddb.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/conddb.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the addresses given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/conddb/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/conddb_wttest/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/conddb_wttest_6/ 
+
+* Test Instances running right now: conddb_wttest, conddb_wttest_6
+
+### Phedex:
+
+Setting up the environment. Make sure this matches with the instance of Phedex 
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server, 
+described in section 1.1.
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+    export PHEDEX_WEBPAGES_PROD_PORT=7101
+    export PHEDEX_WEBPAGES_PROD_SERVER=cmswt03.cern.ch
+    export PHEDEX_DATASVC_PROD_PORT=7001
+    export PHEDEX_DATASVC_PROD_SERVER=cmswt02.cern.ch
+    export PHEDEX_DATASVC_TEST_PORT=7001
+    export PHEDEX_DATASVC_TEST_SERVER=cmswttest.cern.ch
+    
+
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/phedex.conf
+    <Location /phedex>
+       Order allow,deny
+       Allow from all
+    </Location>
+    # PhedexDataSVC Production instance
+    RewriteRule ^/phedex/datasvc($|/.*) http://@PHEDEX_DATASVC_PROD_SERVER@:@PHEDEX_DATASVC_PROD_PORT@/phedex/datasvc$1 [P,L]
+    # PhedexDataSVC Test instance
+    RewriteRule ^/phedex/test/datasvc($|/.*) http://@PHEDEX_DATASVC_TEST_SERVER@:@PHEDEX_DATASVC_TEST_PORT@/phedex/datasvc$1 [P,L]
+    # PhedexWebPages Production Instance
+    RewriteRule ^/phedex($|/.*) http://@PHEDEX_WEBPAGES_PROD_SERVER@:@PHEDEX_WEBPAGES_PROD_PORT@/phedex$1 [P,L]
+    EOF
+
+and 
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/phedex.conf
+    # Require authentication to the test-service
+    <LocationMatch "^/phedex">
+      SSLRequireSSL
+      SSLVerifyDepth 10
+      SSLVerifyClient require
+      SSLOptions +StdEnvVars +StrictRequire +ExportCertData
+      SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
+    </LocationMatch>
+    
+    RewriteEngine  on
+
+    # This rule requires successful client verification to pass
+    # the request to the back-end server.  For LA-U:ENV trickery,
+    # please see the bugs here:
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=30464
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=21672
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=10434
+    # FIXME: SSL:SSL_CLIENT_VERIFY is always NONE for me at this point, while
+    #        it correctly returns SUCCESS in the backend. dunno... For the time
+    #        being I'll use HTTPS  
+    RewriteCond %{HTTPS}!= on
+
+    # PhedexDataSVC Production instance
+    RewriteRule ^/phedex/datasvc($|/.*) http://@PHEDEX_DATASVC_PROD_SERVER@:@PHEDEX_DATASVC_PROD_PORT@/phedex/datasvc$1 [P,L]
+    # PhedexDataSVC Test instance
+    RewriteRule ^/phedex/test/datasvc($|/.*) http://@PHEDEX_DATASVC_TEST_SERVER@:@PHEDEX_DATASVC_TEST_PORT@/phedex/datasvc$1 [P,L]
+    # PhedexWebPages Production Instance
+    RewriteRule ^/phedex($|/.*) http://@PHEDEX_WEBPAGES_PROD_SERVER@:@PHEDEX_WEBPAGES_PROD_PORT@/phedex$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/phedex.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/phedex.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+
+Then you can check the address given by (for Phedex WebPages - apache/mod_perl part):
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/phedex/
+
+[Or, more precisaly:]
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/phedex/prod/Components::Status
+
+
+And (for Phedex WebPages - graphs part):
+    
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/phedex/graphs/quantity_rates
+
+[Or:]
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/phedex/prod/Activity::RatePlots
+
+
+And (for Phedex DataSVC):
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/phedex/datasvc/xml/prod/nodes?nocache=1
+
+
+### ProdMon :
+
+Setting up the environment. Make sure this matches with the instance of ProdMon 
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server, 
+described in section 1.1.
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+    export PRODMON_PROD_PORT=8018
+    export PRODMON_PROD_SERVER=cmswt.cern.ch
+    export PRODMON_TEST_PORT=8019
+    export PRODMON_TEST_SERVER=cmswttest.cern.ch
+    
+
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/prodmon.conf
+    <Location /prodmon>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteCond %{SERVER_PORT} ^80$
+    RewriteRule ^/prodmon($|/.*) http://@PRODMON_PROD_SERVER@:@PRODMON_PROD_PORT@$1 [P,L]
+    RewriteRule ^/prod-mon($|/.*) http://@PRODMON_PROD_SERVER@:@PRODMON_PROD_PORT@$1 [P,L]
+
+    RewriteRule ^/prodmon_test($|/.*) http://@PRODMON_TEST_SERVER@:@PRODMON_TEST_PORT@$1 [P,L]
+    EOF
+
+and 
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/prodmon.conf
+    # Require authentication to the test-service
+    <LocationMatch "^/prodmon">
+      SSLRequireSSL
+      SSLVerifyDepth 10
+      SSLVerifyClient require
+      SSLOptions +StdEnvVars +StrictRequire +ExportCertData
+      SSLRequire %{SSL_CIPHER_USEKEYSIZE} >= 128
+    </LocationMatch>
+    
+    RewriteEngine  on
+
+    # This rule requires successful client verification to pass
+    # the request to the back-end server.  For LA-U:ENV trickery,
+    # please see the bugs here:
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=30464
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=21672
+    #   http://issues.apache.org/bugzilla/show_bug.cgi?id=10434
+    # FIXME: SSL:SSL_CLIENT_VERIFY is always NONE for me at this point, while
+    #        it correctly returns SUCCESS in the backend. dunno... For the time
+    #        being I'll use HTTPS  
+    RewriteCond %{HTTPS}!= on
+    RewriteRule ^/prodmon($|/.*) http://@PRODMON_PROD_SERVER@:@PRODMON_PROD_PORT@$1 [P,L]
+    RewriteRule ^/prod-mon($|/.*) http://@PRODMON_PROD_SERVER@:@PRODMON_PROD_PORT@$1 [P,L]
+
+    RewriteRule ^/prodmon_test($|/.*) http://@PRODMON_TEST_SERVER@:@PRODMON_TEST_PORT@$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/prodmon.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/prodmon.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the addresses given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/prodmon/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/prod-mon/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/prodmon_test/
+
+### DQM:
+ 
+Setting up the environment. Make sure this matches with the instance of DQM
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   if [ $SSL_FRONTEND_PORT -eq 443 ]; then export SSL_REWRITE_PORT=""; else export SSL_REWRITE_PORT=:$SSL_FRONTEND_PORT; fi
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export DQM_TIER0_PORT=8030
+   export DQM_RELVAL_PORT=8050
+   export DQM_CAF_PORT=8040
+   export DQM_DEV_PORT=8060
+   export DQM_SERVER=vocms34.cern.ch
+ 
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/dqm.conf
+   <Location /dqm($|/.*)>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/dqm/tier-0($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/dqm/tier-0$1 [R,L]
+   RewriteRule ^/dqm/relval($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/dqm/relval$1 [R,L]
+   RewriteRule ^/dqm/caf($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/dqm/caf$1 [R,L]
+   RewriteRule ^/dqm/dev($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/dqm/dev$1 [R,L]
+   EOF
+
+and
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/dqm.conf
+   <Location /dqm($|/.*)>
+      Order allow,deny
+      Allow from all
+   </Location>   
+   RewriteRule ^(/dqm/tier-0($|/.*)) http://@DQM_SERVER@:@DQM_TIER0_PORT@$1 [P,L]
+   RewriteRule ^(/dqm/relval($|/.*)) http://@DQM_SERVER@:@DQM_RELVAL_PORT@$1 [P,L]
+   RewriteRule ^(/dqm/caf($|/.*)) http://@DQM_SERVER@:@DQM_CAF_PORT@$1 [P,L]
+   RewriteRule ^(/dqm/dev($|/.*)) http://@DQM_SERVER@:@DQM_DEV_PORT@$1 [P,L]
+   EOF   
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/dqm.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/dqm.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the addresses given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dqm/tier-0/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dqm/relval/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dqm/caf/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dqm/dev/ 
+
+
+### Monitoring:
+
+Setting up the environment. Make sure this matches with the instance of Monitoring
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   if [ $SSL_FRONTEND_PORT -eq 443 ]; then export SSL_REWRITE_PORT=""; else export SSL_REWRITE_PORT=:$SSL_FRONTEND_PORT; fi
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export MONITORING_PORT=9000
+   export MONITORING_SERVER=vocms34.cern.ch
+
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/monitoring.conf
+   <Location /overview>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/overview($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/overview$1 [R,L]
+   EOF   
+
+and
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/monitoring.conf
+   <Location /overview>
+      Order allow,deny
+      Allow from all 
+   </Location>
+   RewriteRule ^/overview($|/.*) http://@MONITORING_SERVER@:@MONITORING_PORT@/overview$1 [P,L]
+   EOF
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/monitoring.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/monitoring.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/overview/
+
+
+### ProdManager:
+
+Setting up the environment. Make sure this matches with the instance of ProdManager
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   if [ $SSL_FRONTEND_PORT -eq 443 ]; then export SSL_REWRITE_PORT=""; else export SSL_REWRITE_PORT=:$SSL_FRONTEND_PORT; fi
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export PRODMANAGER_PORT=8443
+   export PRODMANAGER_SERVER=lxgate42.cern.ch
+
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/prodmanager.conf
+   <Location /prodmanager>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/prodmanager/ https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/prodmanager/ [R,L]
+   EOF
+
+and
+  
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/prodmanager.conf
+   <Location /prodmanager>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/prodmanager/ https://@PRODMANAGER_SERVER@:@PRODMANAGER_PORT@/clarens/web/prodMgrRequest/
+   EOF   
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/prodmanager.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/prodmanager.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/prodmanager/
+
+
+### Dashboard:
+
+Setting up the environment. Make sure this matches with the instance of Dashboard
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export DASHBOARD_SERVER=arda-dashboard.cern.ch
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/dashboard.conf
+   <Location /dashboard>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/dashboard/(.*) http://@DASHBOARD_SERVER@/cms/
+   EOF   
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/dashboard.conf
+   <Location /dashboard>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/dashboard/(.*) http://@DASHBOARD_SERVER@/cms/
+   EOF   
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/dashboard.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/dashboard.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/dashboard/
+
+
+### JobRobot:
+
+Setting up the environment. Make sure this matches with the instance of ProdMon
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export JOBROBOT_PORT=8101
+   export JOBROBOT_SERVER=cmswttest.cern.ch
+
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/jobrobot.conf
+   <Location /jobrobot>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/jobrobot($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/jobrobot$1 [R,L]
+   EOF
+
+and   
+ 
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/jobrobot.conf
+   <Location /jobrobot>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/jobrobot($|/.*) http://@JOBROBOT_SERVER@:@JOBROBOT_PORT@/$1 [P] 
+   EOF    
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/jobrobot.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/jobrobot.conf
+
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/jobrobot/ 
+
+
+### FileMover:
+
+Setting up the environment. Make sure this matches with the instance of FileMover
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export FILEMOVER_PROD_PORT=8201
+   export FILEMOVER_TEST_PORT=8202
+   export FILEMOVER_WEB_PORT=8203
+   export FILEMOVER_SERVER=cmswttest.cern.ch
+
+
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/filemover.conf
+   <Location /filemover>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/filemover($|/.*) http://@FILEMOVER_SERVER@:@FILEMOVER_PROD_PORT@/FMWS$1 [P,L]
+
+   RewriteRule ^/filemover_test/(.*) http://@FILEMOVER_SERVER@:@FILEMOVER_TEST_PORT@/$1 [P]
+   RewriteRule ^/filemover_web($|/.*) http://@FILEMOVER_SERVER@:@FILEMOVER_WEB_PORT@/FMWS$1 [P,L]
+   EOF 
+
+and
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/filemover.conf
+   <Location /filemover>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/filemover($|/.*) http://@FILEMOVER_SERVER@:@FILEMOVER_PROD_PORT@/FMWS$1 [P,L]
+
+   RewriteRule ^/filemover_test/(.*) http://@FILEMOVER_SERVER@:@FILEMOVER_TEST_PORT@/$1 [P]
+   RewriteRule ^/filemover_web($|/.*) http://@FILEMOVER_SERVER@:@FILEMOVER_WEB_PORT@/FMWS$1 [P,L]
+   EOF
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/filemover.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/filemover.conf
+
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/filemover/
+         
+* Test, Web instances not running.
+
+
+### GraphTool:
+
+Setting up the environment. Make sure this matches with the instance of GraphTool
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export GRAPHTOOL_PORT=8086
+   export GRAPHTOOL_SERVER=cmswt01.cern.ch
+   
+
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/graphtool.conf
+   <Location /graphtool-test>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/graphtool-test($|/.*) https://@FRONTEND_DNS_NAME@:@SSL_FRONTEND_PORT@/graphtool-test$1 [R,L]
+   EOF       
+
+and
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/graphtool.conf
+   <Location /graphtool-test>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/graphtool-test($|/.*) https://@GRAPHTOOL_SERVER@:@GRAPHTOOL_PORT@/graphtool-test/$1 [P]
+   EOF
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/graphtool.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/graphtool.conf
+
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/graphtool-test/
+
+* Service is not running in GRAPHTOOL_SERVER
+
+
+### WebTools COMMON:
+
+Setting up the environment. Make sure this matches with the instance of WebTools COMMON
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server,
+described in section 1.1.
+
+   [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+   export WEBTOOLSCOMMON_SERVER=cmswt01.cern.ch
+
+
+
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/webtoolscommon.conf
+   <Location /WEBTOOLS>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/WEBTOOLS/Common/(.*) http://@WEBTOOLSCOMMON_SERVER@/Common/$1 [R]
+   RewriteRule ^/WEBTOOLS/(.*) http://@WEBTOOLSCOMMON_SERVER@/$1 [R]
+   EOF    
+
+and
+
+   cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/webtoolscommon.conf
+   <Location /WEBTOOLS>
+      Order allow,deny
+      Allow from all
+   </Location>
+   RewriteRule ^/WEBTOOLS/Common/(.*) http://@WEBTOOLSCOMMON_SERVER@/Common/$1 [R]
+   RewriteRule ^/WEBTOOLS/(.*) http://@WEBTOOLSCOMMON_SERVER@/$1 [R]
+   EOF
+
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/webtoolscommon.conf
+   perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/webtoolscommon.conf 
+
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/WEBTOOLS/Common/
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/WEBTOOLS/
+
+* No WEBTOOLS page available at cmswt01.
+
+
+### ProdRequest
+
+Setting up the environment. Make sure this matches with the instance of ProdRequest
+which you want to use.
+Make sure also sure you have already set the environment for the frontend server, 
+described in section 1.1.
+
+    if [ $SSL_FRONTEND_PORT -eq 443 ]; then export SSL_REWRITE_PORT=""; else export SSL_REWRITE_PORT=:$SSL_FRONTEND_PORT; fi
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+    export PR_PORT=8030
+    export PR_PROD_SERVER=cmswt02.cern.ch    
+    export PR_TEST_SERVER=cmswttest.cern.ch
+    export PR_DEVEL_SERVER=iguana3.cern.ch
+     
+
+
+
+Then create the configuration file:
+
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/rewrites.d/prodrequest.conf
+    <Location /prodrequest>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/prodrequest($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/prodrequest$1 [R,L]
+    RewriteRule ^/prodrequest_test($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/prodrequest_test$1 [R,L]
+    RewriteRule ^/prodrequest_devel($|/.*) https://@FRONTEND_DNS_NAME@@SSL_REWRITE_PORT@/prodrequest_devel$1 [R,L]
+    EOF
+    
+    cat << \EOF > $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/prodrequest.conf
+    <Location /prodrequest>
+       Order allow,deny
+       Allow from all
+    </Location>
+    RewriteRule ^/prodrequest($|/.*) http://@PR_PROD_SERVER@:@PR_PORT@$1 [P,L]
+    RewriteRule ^/prodrequest_test($|/.*) http://@PR_TEST_SERVER@:@PR_PORT@$1 [P,L]
+    RewriteRule ^/prodrequest_devel($|/.*) http://@PR_DEVEL_SERVER@:@PR_PORT@$1 [P,L]
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/rewrites.d/prodrequest.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/conf/ssl_rewrites.d/prodrequest.conf
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the addresses given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/prodrequest/
+
+* Test, Devel instances not running.
+
+
+### WelcomePages
+
+Setting up the environment. Make sure also sure you have already set the environment for the frontend server, described in section 1.1.
+
+    [ "X$APACHE2_CONF_ROOT" = X ] && echo "Make sure you set up the server environment! Read section 1.1 of the manual."
+    export WELCOME_PORT=7779
+
+
+Copying default page files from frontend current in production (old one) to new one.  
+
+    mkdir $APACHE2_FRONTEND_ROOT/WelcomePages
+    export OLD_FRONTEND=vocms08.cern.ch
+    export DEFAULT_PAGE_PATH=/var/www/html   (or, wherever files are in old frontend)
+    scp $OLD_FRONTEND:$DEFAULT_PAGE_PATH/* $APACHE2_FRONTEND_ROOT/WelcomePages
+
+
+Then create the WelcomePages configuration file:
+
+    cat << \EOF > $APACHE2_CONF_ROOT/apps.d/welcome.conf
+    Listen @WELCOME_PORT@ 
+
+    <VirtualHost *:@WELCOME_PORT@>
+    DocumentRoot @APACHE2_FRONTEND_ROOT@/WelcomePages
+
+    <Directory />
+       Order allow,deny
+       Allow from all
+    </Directory>
+    </VirtualHost>  
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/apps.d/welcome.conf
+
+
+Set frontend configuration files accordingly:
+
+    rm -rf $APACHE2_CONF_ROOT/apps.d/frontend.conf
+
+    cat << \EOF > $APACHE2_CONF_ROOT/apps.d/frontend.conf
+    Listen @FRONTEND_PORT@
+
+    <VirtualHost *:@FRONTEND_PORT@>
+    SSLEngine off
+    
+    DocumentRoot @APACHE2_FRONTEND_ROOT@/WelcomePages
+    <Directory />
+       Order allow,deny
+       Allow from all
+    </Directory>
+
+    RewriteLog @APACHE2_CONF_ROOT@/logs/rewrites_log
+    RewriteLogLevel 3
+
+    Include @APACHE2_CONF_ROOT@/conf/rewrites.d
+
+    </VirtualHost>
+    EOF
+
+    rm -rf $APACHE2_CONF_ROOT/apps.d/ssl_frontend.conf
+
+    cat << \EOF > $APACHE2_CONF_ROOT/apps.d/ssl_frontend.conf
+    Listen @SSL_FRONTEND_PORT@
+
+    #added to speed up parallel request processing
+    SSLSessionCache         shmcb:@APACHE2_CONF_ROOT@/var/cache/mod_ssl/scache(512000)
+    SSLSessionCacheTimeout  300
+
+    <VirtualHost *:@SSL_FRONTEND_PORT@>
+
+    DocumentRoot @APACHE2_FRONTEND_ROOT@/WelcomePages
+    <Directory />
+        Order allow,deny
+        Allow from all
+    </Directory>
+
+    RewriteLog @APACHE2_CONF_ROOT@/logs/rewrites_log
+    RewriteLogLevel 3
+    SSLEngine on
+    SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+
+    SSLCertificateFile @FRONTEND_CERT@
+    SSLCertificateKeyFile @FRONTEND_KEY@
+
+    SSLCACertificateFile  @APACHE2_FRONTEND_ROOT@/conf/ca-bundle-client.crt
+    #SSLCARevocationFile @APACHE2_FRONTEND_ROOT@/conf/ca-bundle-revocation.crl
+
+    RequestHeader set SSL_CLIENT_CERT %{SSL_CLIENT_CERT}e
+    RequestHeader set SSL_CLIENT_S_DN %{SSL_CLIENT_S_DN}e
+    RequestHeader set SSL_CLIENT_VERIFY %{SSL_CLIENT_VERIFY}e
+    RequestHeader set HTTPS %{HTTPS}e
+
+    Include @APACHE2_CONF_ROOT@/conf/ssl_rewrites.d
+
+    </VirtualHost>
+    EOF
+
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/apps.d/frontend.conf
+    perl -p -i -e 's|\@([^@]*)\@|$ENV{$1}|g' $APACHE2_CONF_ROOT/apps.d/ssl_frontend.conf
+
+
+Create datafile to SSLSessionCache:
+
+    mkdir $APACHE2_CONF_ROOT/var/cache
+    mkdir $APACHE2_CONF_ROOT/var/cache/mod_ssl
+    touch $APACHE2_CONF_ROOT/var/cache/mod_ssl/scache
+
+
+And finally, you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address given by:
+
+    echo http://$FRONTEND_DNS_NAME:$FRONTEND_PORT/
+
+
+## 4. Allowing server status report 
+ 
+[Please note that this is an optional setting.]
+
+   cat << \EOF >> $APACHE2_CONF_ROOT/conf/apache2.conf
+   <IfModule mod_status.c>
+	#
+    	# Allow server status reports generated by mod_status,
+    	# with the URL of http://servername/server-status
+    	# Change the ".example.com" to match your domain to enable.
+    	#
+        ExtendedStatus On
+        <Location /server-status>
+        	SetHandler server-status
+        	Order deny,allow
+        	Deny from all
+        	Allow from .cern.ch
+        	Allow from 127.0.0.1
+    	</Location>
+   </IfModule>
+   EOF
+ 
+
+Then you can restart apache by doing:
+
+    [ $FRONTEND_PORT -lt 1024 ] && echo "Please check if ssh section you oppenned in 2.4 is still oppenned. If so restart from there. If not (before continuing):" && echo "1 - Set the environment as documented in section 1.1" && echo "2 - source $WORKDIR/$ARCH/cms/apache2-conf/$APACHE2_CONF_VERSION/etc/profile.d/init.sh"
+
+    $APACHE2_CONF_ROOT/bin/httpd -k graceful
+
+Then you can check the address (inside CERN domain!) given by:
+
+    echo http://$FRONTEND_MACHINE:$FRONTEND_PORT/server-status/
+
+[Or:]
+
+    wget http://localhost/server-status

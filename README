@@ -1,0 +1,29 @@
+DIRECTORY STRUCTURE:
+
+WEBTOOLS uses the following convention for the packaging of its products.
+
+* Applications/SiteDB
+               ProdRequest
+               ...
+
+  This is to be used by plugin components that export web services that are in 1-1 corrispondence with some CMS COMP subproject.
+
+* Controllers/Common
+              Studio
+              GraphTool
+              ...
+
+This is to be used by plugin components that export web services that are common among CMS webtools products (widgets, masthead, etc. etc.).
+Notice that Controllers/Common can also be used as is and does not actually require that you use any of the python code found in WEBTOOLS.
+
+* Modules/
+
+This is to be used by plugin components that do not export any web service.
+
+* Tools/
+
+This is to be used by generic python code.
+
+* Framework/
+
+This contains the WEBTOOLS mini-framework based on cherrypy.

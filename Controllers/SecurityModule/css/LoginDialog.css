@@ -1,0 +1,23 @@
+div.LoginDialog {
+    text-align: center;
+    border-style: solid;
+    border-width: 1px;
+    color: #00a5d6;
+    background-color: #ffffff;
+    font-size: 120%;
+    width: 66%;
+    font-family: sans-serif;
+}
+
+div.LoginDialog div.hd {
+    padding: 4px 30px 4px 30px;
+    text-align: center;
+    background-color: #00a5d6;
+    color: #ffffff;
+}
+
+div.LoginDialog div.bd {
+    margin-left: 10px;
+    font-size: 100%;
+    color: #000000;
+}

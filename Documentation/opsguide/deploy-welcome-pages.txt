@@ -1,0 +1,66 @@
+Before you start:
+=================
+
+Make sure you can ssh as root on the frontend machines.
+
+    ssh -t root@vocms09.cern.ch echo "OK. Can connect to vocms09.cern.ch" 2>/dev/null
+    ssh -t root@vocms08.cern.ch echo "OK. Can connect to vocms08.cern.ch" 2>/dev/null
+    
+which should print out the following:
+
+    OK. Can connect to vocms09.cern.ch
+    OK. Can connect to vocms08.cern.ch
+
+If not, please ask to Andreas Pfeiffer to add to the list of the people who can
+access to the machine.
+The following procedure needs to be done on BOTH the frontend servers.
+
+
+Environment
+===========
+
+Set up the necessary environment on the frontend machines. This needs to be done
+before you do anything else. This will never change.
+
+    
+    export APACHE_HTDOCS=/var/www/
+    export CVSROOT=":pserver:anonymous@cmscvs.cern.ch/cvs_server/repositories/CMSSW"
+    
+Moreover you need to have a tag for COMP/WEBTOOLS/WelcomePages that you want to 
+deploy this changes from deployment to deployment. Ask the developer who wanted 
+you to do the deployment if you don't know what to do.
+
+    export WELCOME_TAG=CHANGE_ME
+    
+
+Installing the pages the first time
+===================================
+
+Go to the directory where to put the pages.
+
+    [ "X$APACHE_HTDOCS" = X ] && { echo 'Make sure you have $APACHE_HTDOCS set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cd $APACHE_HTDOCS
+
+Check out the pages from CVS.
+    
+    [ "X$CVSROOT" = X ] && { echo 'Make sure you have $CVSROOT set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    [ "X$WELCOME_TAG" = X ] && { echo 'Make sure you have $WELCOME_TAG set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cvs -d $CVSROOT login
+    # Password is 98passwd
+    cvs -d $CVSROOT co -r $WELCOME_TAG -d html COMP/WEBTOOLS/WelcomePages/
+
+Update the front pages
+======================
+
+Go to the directory where to put the pages.
+
+    [ "X$APACHE_HTDOCS" = X ] && { echo 'Make sure you have $APACHE_HTDOCS set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cd $APACHE_HTDOCS/html
+
+update the pages from CVS:
+
+    [ "X$CVSROOT" = X ] && { echo 'Make sure you have $CVSROOT set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    [ "X$WELCOME_TAG" = X ] && { echo 'Make sure you have $WELCOME_TAG set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cvs -d $CVSROOT login
+    # Password is 98passwd
+    cvs -d $CVSROOT update -r $WELCOME_TAG

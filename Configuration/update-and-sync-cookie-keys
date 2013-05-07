@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# Determine locations and parameters.
+
+[ $# -lt 1 ] && { echo "usage: $0 server-dir host..." 1>&2; exit 1; }
+
+srvdir=$1; shift
+[ -d "$srvdir" ] || { echo "$srvdir: no such directory" 1>&2; exit 2; }
+
+keygen=$srvdir/etc/update-cookie-key
+[ -x "$keygen" ] || { echo "$keygen: not an executable" 1>&2; exit 3; }
+
+keydir=$srvdir/var/cookie-keys
+[ -d "$keydir" ] || { echo "$keydir: no such directory" 1>&2; exit 4; }
+
+srvconf=$srvdir/conf/apache2.conf
+[ -r "$srvconf" ] || { echo "$srvconf: cannot read" 1>&2; exit 5; }
+
+srvname=$(awk '/^ServerName/ {print $NF} {}' < $srvconf)
+[ X"$srvname" = X ] && { echo "$srvconf: failed to determine server name" 2>&1; exit 6; }
+
+# Generate a new cookie key.
+$keygen $keydir || { echo "$keygen: execution failed with exit code $?" 1>&2; exit 7; }
+
+# Remove old(er) cookie keys.
+find $keydir -mmin +1080 -exec rm -f {} \;
+
+# Synchronise cookie keys with other servers.
+retcode=0
+for host; do
+  rsync --delete -au -e ssh $keydir/ $host:$keydir/
+  [ X$? = X0 ] || retcode=$?
+done
+
+[ X$retcode = X0 ] || { echo "key synchronisation failed: $retcode" 1>&2; exit 8; }
+
+# Now restart all web servers.
+sudo $srvdir/etc/init.d/httpd graceful
+for host; do
+  ssh $host sudo $srvdir/etc/init.d/httpd graceful
+done
+
+exit 0

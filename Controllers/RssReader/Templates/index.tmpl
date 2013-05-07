@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+<head>
+<title>CMS RSS Reader</title>
+<link rel="stylesheet" type="text/css" href="css/DashboardWidget.css"/>
+<link rel="stylesheet" type="text/css" href="css/RssWidget.css"/>
+<link rel="stylesheet" type="text/css" href="/YUI/yui/css/?script=reset-fonts-grids/reset-fonts-grids.css"/>
+<link rel="stylesheet" type="text/css" href="/YUI/yui/css/?script=/container/assets/container.css"/>
+<link rel="stylesheet" type="text/css" href="/YUI/yui/css/?script=/container/assets/menu/assets/menu.css"/>
+</head>
+	<body>
+		<div id="doc" class="yui-t7">
+			<div id="bd">
+				<div class="yui-ge">
+					<div class="yui-u first">
+					<!-- YOUR DATA GOES HERE -->
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript" src="/YUI/yui/js/?script=yahoo.js&script=yahoo-dom-event.js&script=connection.js&script=container.js&script=menu.js&script=animation.js"></script>
+		<script type="text/javascript" src="/RssReader/js/RssWidget.js"></script>
+		
+		<script type="text/javascript">
+		function init()
+		{
+			var FR = new YAHOO.webtools.FeedsReader("FR");/*,{feedsURL: "/RssReader/exampleFeed"}); /  http://www.theregister.co.uk/excerpts.rss */
+			var root = document.getElementById("doc");
+			var point = YAHOO.util.Dom.getElementsByClassName("first","div",root)[0];	
+			FR.render(point);
+		}
+		YAHOO.util.Event.addListener(window, "load", init);
+		</script>
+	</body>
+</html>

@@ -1,0 +1,368 @@
+#!/usr/bin/env perl
+##############################################################
+#
+# Small example demonstrating the usage of the SecurityModule
+#
+##############################################################
+use lib "/var/www/SecurityModule/perl/lib";
+use CGI qw(cookie);
+use Data::Dumper;
+#use SecurityModule::MySQL;
+use CMSWebTools::SecurityModule::SQLite;
+use strict;
+
+my $doc = new CGI;
+my $buf; # buffer containing the generated page
+
+# information used for finding out the URL as seen by
+# the remote proxy
+my $baseurl="https://localhost/bclear";
+my $scriptroot="testSecMod";
+my ($mypage,$myurl) = getMyURL();
+
+#############################################
+# my $sec = new SecurityModule::MySQL({CALLER_URL => $myurl,
+# 				     CONFIG => "/var/www/testbackend/cgi-bin/SecurityModuleMySQL.conf",
+# 				     KEYVALIDTIME => 30,
+# 				     LOGFILE => "/tmp/SecMod.log",
+# 				     LOGLEVEL => 5
+# 				     });
+my $sec = new CMSWebTools::SecurityModule::SQLite({CALLER_URL => $myurl,
+				      CONFIG => "/var/www/testbackend/cgi-bin/SecurityModule.conf",
+				      KEYVALIDTIME => 300,
+				      LOGLEVEL => 5
+ 				     });
+
+# these now given through config file
+#				     REQCERT_FAIL_HANDLER => "https://localhost/bclear/testSecMod/nopermission"
+#				     PWDFORM_HANDLER => "https://localhost/bclear/testSecMod/passform",
+#				     KEYVALIDTIME => 1000,
+# 				     DBHOST => "localhost",
+# 				     DBPORT => 3306,
+# 				     DBNAME => "secmod",
+# 				     DBUSER => "smwriter",
+# 				     DBPASS => "SecMod"
+
+$sec->init();
+#############################################
+
+# Need to set the security cookie if it
+# was defined by the security module
+my $cookie;
+if( ($cookie=$sec->getCookie) ) {
+    $buf .= $doc->header(-cookie => $cookie );
+} else {
+    $buf .= $doc->header();
+}
+
+
+# Examples for restricting access
+if ($mypage =~ /^testSecMod\/cert/) {
+  $sec->reqAuthnCert();
+} elsif ($mypage =~ /^testSecMod\/passwd/) {
+  $sec->reqAuthnPasswd();
+} 
+
+
+# generate the page
+if ($mypage =~ /^testSecMod\/nopermission/) {
+  nopermission(\$buf);
+} elsif ($mypage =~ /^testSecMod\/passform/) {
+  myPasswordForm(\$buf);
+} elsif ($mypage =~ /^testSecMod\/signup/) {
+  mySignUpForm(\$buf);
+} else {
+  testpage(\$buf);
+}
+
+print $buf;
+
+exit(0);
+
+################################################################################
+
+sub testpage {
+  my $buf = shift;
+
+  $$buf .=  $doc->start_html("SecMod Test");
+  $$buf .=  $doc->h1("Security Module Test");
+  if ( $sec->getErrMsg() ) {
+    $$buf .=  "<br>ERROR MESSAGE FROM SecMod: " . $sec->getErrMsg() . "<br>\n";
+  }
+
+  # Based on the authentication state a "Login" and a "Logout" link is
+  # set
+  my $sep = grep (!/^keywords$/,$doc->url_param()) ? "&" : "?";
+  if ( $sec->getAuthnState() eq "passwd") {
+    $$buf .=  $doc->a({href=>$myurl . $sep . "SecModLogout=1"},"Logout");
+  } else {
+    $$buf .=  $doc->a({href=>$myurl . $sep . "SecModPwd=1"},"Password Login");
+  }
+
+
+  if($sec->getAuthnState() ne "failed") {
+    $$buf .= "<br>You are identified by <b>" . $sec->getAuthnState() .
+      "</b> and logged in as <b>" . $sec->getForename() . " "
+	. $sec->getSurname() ."</b>";
+  } else {
+    $$buf .= "<br>Not authenticated";
+  }
+
+  $$buf .= $doc->hr;
+
+  navigation($buf);
+
+  $$buf .=  $doc->hr()
+    . $doc->h2("Authentication/authorization Data:")
+      . "<br>Authentication state: " . $sec->getAuthnState() . "\n"
+	. "<br>User ID:" . $sec->getID() . "\n"
+	  . "<br>Roles: ".Dumper($sec->getRoles())."<br>\n";
+
+  $$buf .= $doc->h2("Extra information:")
+    . "<br>DN: " . ($sec->getDN() || "undefined") . "\n"
+      . "<br>Username: " . ($sec->getUsername() || "undefined") . "\n";
+
+  $$buf .= "<br> I have set a new SecMod cookie!<br>" if $cookie;
+
+  $$buf .=  $doc->hr() . $doc->h2("Authorization Test:");
+  if(my $role=$doc->param("role")) {
+      my $authz;
+      my $role=$doc->param("role");
+      if(my $scope=$doc->param("scope")) {
+	  $$buf .= "hasRole($role,$scope): ";
+	  $authz=$sec->hasRole($role,$scope);
+      } else {
+	  $$buf .= "Authorization test: hasRole($role): ";
+	  $authz=$sec->hasRole($role);
+      }
+      $$buf .= $authz == 1 ? "OK" : "FAILED";
+  }
+  $$buf .= $doc->start_form(-method => "POST", -action => $myurl,
+		       -encoding => "application/x-www-form-urlencoded");
+
+  $$buf .= $doc->p . "Role: " . $doc->textfield('role','',12,20);
+  $$buf .= $doc->p . "Scope: " . $doc->textfield('scope','',12,20);
+  $$buf .= $doc->p . $doc->submit(-name=>'Submit',
+				  -value=>'submit');
+  $$buf .=  $doc->endform;
+
+  showParams($buf);
+
+  if ($mypage =~ /\/debug\//) {
+    showDebugInfo($buf);
+  }
+
+  $$buf .=  $doc->end_html;
+  return 1;
+}
+
+# An example password form routine
+#
+sub myPasswordForm {
+  my $buf = shift;
+  my $msg = shift;
+
+  $msg=$doc->param("msg") if $doc->param("msg");
+
+  $$buf .= $doc->h1("My Customized Password form");
+
+
+  # If the form is displayed because of reauthentication, offer
+  # user to log out
+  if ($msg eq "reauthentication") {
+    my $sep = $doc->param("caller_url") =~ /\?/ ? "&" : "?";
+    $$buf .=  $doc->a({href => $doc->param("caller_url") . $sep . "SecModLogout=1"},"Logout")
+      . "<br>\n";
+  }
+
+  my $pl = $doc->hr . $doc->h2("passed parameters:");
+  my @par = $doc->param();
+  for my $p (@par) {
+    $pl .=  "post param: $p => ";
+    if ($p ne "SecModPwd") {
+      $pl .= $doc->param($p) . "<br>\n";
+    } else {
+      $pl .= "***hidden***<br>\n";
+    }
+  }
+  foreach my $p ($doc->url_param()) {
+    $pl .= "url param: $p => '" . $doc->url_param($p) . "'<br>\n";
+  }
+
+  $$buf .= "Note: You need to have cookies enabled<br>";
+
+  $$buf .= $doc->start_form(-method => "POST", -action => $doc->param("caller_url"),
+		       -encoding => "application/x-www-form-urlencoded");
+  if ($msg) {
+    $$buf .= $doc->h1("Error: " . $msg);
+  } else {
+    $$buf .= $doc->h1("Log in:");
+  }
+
+  # These two fields 'SecModLogin' and 'SecModPwd' need to be supplied
+  # back to the calling page
+  $$buf .= $doc->p . "Login Name: " . $doc->textfield('SecModLogin','',12,20);
+  $doc->param('SecModPwd',"");
+  $$buf .= $doc->p . "Password: " . $doc->password_field('SecModPwd','',20,30);
+  $$buf .= $doc->p . $doc->submit(-name=>'Submit',
+				  -value=>'submit');
+  $$buf .=  $doc->endform;
+
+  $$buf .= "I have set a cookie<br>\n" if $sec->getCookie();
+
+  $$buf .= $pl;
+
+  $$buf .= $doc->end_html;
+}
+
+sub nopermission {
+  my $buf = shift;
+
+  $$buf .=  $doc->start_html("SecMod Test");
+  $$buf .=  $doc->h1("Security Module Test");
+
+  $$buf .= "You need a certificate to view this page";
+}
+
+sub mySignUpForm {
+  my $buf = shift;
+  my $q = new CGI;
+
+  my $caller_url = $q->param("caller_url");
+  my $paramstring = $q->param("paramstring");
+
+  print $q->header,$q->start_html;
+  print "This is a placeholder for the signup page\n";
+  print "<br>" . $q->a({href => $caller_url},"Return");
+  print "<hr>Your user data is:<br>$paramstring\n";
+  print $q->end_html;
+  exit(0);
+
+}
+
+################################################################################
+################################################################################
+################################################################################
+
+
+# return the URL as seen by the remote proxy
+sub getMyURL {
+
+  my $mypage = $doc->url(-path=>1);
+  if ($doc->url_param()) {
+    my @arr=();
+    foreach my $p ($doc->url_param()) {
+      next if $p eq "keywords";
+      push @arr,"$p=" . $doc->url_param($p);
+    }
+    $mypage .= "?" . join("&",@arr) if @arr;
+  }
+
+  $mypage  =~ s!^([^?]+)/(testSecMod.*)!$2!;
+  return ($mypage,"$baseurl/$mypage");
+}
+
+sub navigation {
+  my $buf = shift;
+
+  $$buf .= $doc->h2("Navigation");
+  $$buf .= "<br>" . $doc->a({href => "$baseurl/$scriptroot/cert"}, "cert-protected-pages") .
+    " " . $doc->a({href => "$baseurl/$scriptroot/passwd"}, "passwd-protected-pages") .
+      " " . $doc->a({href => "$baseurl/$scriptroot/free"}, "free pages");
+
+  $$buf .= "<br><br>Pages with URL parameters:\n";
+  my $urlp="?arga=1&argb=2&argc=3";
+  $$buf .= "<br>" . $doc->a({href => "$baseurl/$scriptroot/cert$urlp"}, "cert-protected-pages") .
+    " " . $doc->a({href => "$baseurl/$scriptroot/passwd$urlp"}, "passwd-protected-pages") .
+      " " . $doc->a({href => "$baseurl/$scriptroot/free$urlp"}, "free pages");
+
+
+  $$buf .= "<br><br>Pages with URL and POST parameters:\n";
+  $$buf .= $doc->start_form(-method => "POST", -action => "$baseurl/$scriptroot/cert$urlp",
+		       -encoding => "application/x-www-form-urlencoded");
+  $$buf .= $doc->hidden("posta","passwd protected range");
+  $$buf .= $doc->p . $doc->submit(-name=>'post_goto',
+			 -value=>'cert-zone');
+  $$buf .= $doc->endform;
+
+  $$buf .= $doc->start_form(-method => "POST", -action => "$baseurl/$scriptroot/passwd$urlp",
+		       -encoding => "application/x-www-form-urlencoded");
+  $$buf .= $doc->hidden("postb","passwd protected range");
+  $$buf .= $doc->p . $doc->submit(-name=>'post_goto',
+			 -value=>'pwd-zone');
+  $$buf .= $doc->endform;
+
+  $$buf .= $doc->start_form(-method => "POST", -action => "$baseurl/$scriptroot/free$urlp",
+		       -encoding => "application/x-www-form-urlencoded");
+  $$buf .= $doc->hidden("postc","free range");
+  $$buf .= $doc->p . $doc->submit(-name=>'post_goto',
+			 -value=>'free-zone');
+  $$buf .= $doc->endform;
+
+}
+
+sub showParams {
+  my $buf = shift;
+
+  $$buf .=  $doc->hr . $doc->h2("passed parameters:");
+  my @par = $doc->param();
+  for my $p (@par) {
+    $$buf .=  "post param: $p =>";
+    if ($p ne "SecModPwd") {
+      $$buf .= $doc->param($p) . "<br>\n";
+    } else {
+      $$buf .= "***hidden***<br>\n";
+    }
+  }
+  $$buf .= "<br>";
+  foreach my $p ($doc->url_param()) {
+    $$buf .=  "url param: $p => '" . $doc->url_param($p) . "'<br>\n";
+  }
+
+}
+
+sub showDebugInfo {
+  my $buf = shift;
+
+  $$buf .=  $doc->hr . $doc->h2("debug info and functionality tests:");
+
+  if((my $ck = cookie(-name => "SecMod"))) {
+    $$buf .= "Found cookie: $ck<br>";
+    my @rv = $sec->_decryptCookie($ck);
+    $$buf .= "decrypts as: " . join(" | ",@rv) . "<br>\n";
+  }
+
+  #$$buf .=  "    my url: " . $doc->self_url() . "<br>\n";
+  $$buf .=  "caller url: " . $sec->{CALLER_URL} . "<br>\n";
+  $$buf .=  "mypage: " . $mypage . "<br>\n";
+
+  $$buf .= $doc->h3("Encryption tests:");
+  $sec->_initCipher();
+  $$buf .=  "KEYID: $sec->{KEYID}<br>\n";
+  $$buf .=  "KEYVALIDTIME: $sec->{KEYVALIDTIME}<br>\n";
+
+  $$buf .=  "Originator hash (MD5/B64): " . $sec->_getOriginatorHash() . "<br>\n";
+
+  my $msg = "My secret test message";
+  $$buf .=  "Original message: " . $msg . "<br>\n";
+
+  my $encr = $sec->_encrypt($msg);
+  $$buf .=  "Encrypted message:" . $encr . "<br>\n";
+
+  my $decr = $sec->_decrypt($encr);
+  $$buf .=  "Decrypted message:" . $decr . "<br>\n";
+
+  $sec->{USERNAME}=$sec->_getUsernameFromID($sec->{USERID}) if ! $sec->{USERNAME};
+  if($sec->{USERNAME}) {
+      my $cookietxt = $sec->_prepareCookie();
+      $$buf .=  "<br>Test Cookie encrypted text: " . $cookietxt . "<br>\n";
+
+      my @cookievars = $sec->_decryptCookie($cookietxt);
+      $$buf .=  "<br>Test Cookie decr text:" . join(", ",@cookievars) . "<br>\n";
+  }
+  #$$buf .=  $doc->h2("Environment:");
+  #for my $k (keys %ENV) {
+  #  $$buf .=  "$k=$ENV{$k}<br>\n";
+  #}
+
+}

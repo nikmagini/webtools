@@ -1,0 +1,11 @@
+#!/bin/sh
+
+proj_dir=/data/projects/prodmon
+ws_name="prodmon"
+ws_ver="0.0.3-cmp3"
+ws_page="/plot/index"
+ws_port="8018"
+ws_base="prodmon"
+
+source $WEBTOOLS_STARTUP/base/setup.sh
+$WEBTOOLS_STARTUP/base/cmsweb_service $@

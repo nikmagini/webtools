@@ -1,0 +1,109 @@
+#include $tmplPath + "header.html"
+
+<div>
+$entity history [<a href = "/T0Mon/">Back to main page</a>]<br />
+</div>
+
+<div>
+<br />
+$streamerFiles
+</div>
+
+<br />
+
+<table  border="0" id="expressBG">
+ <tr > <td id="expressBG">
+<b>Express Data<b/> </td>
+ <tr/>
+ <tr id="expressBG"> <td id="expressBG">
+<div style="float:left;padding-right:5px;">
+$expressJobs
+</div></td><td id="expressBG">
+<div style="float:left;padding-right:5px;">
+$expressFiles
+</div></td><td id="expressBG">
+<div style="float:left;padding-right:5px;">
+$expressMergeJobs
+</div></td><td id="expressBG">
+<div style="float:left;padding-right:5px;" >
+$expressMergeFiles
+</div>
+ </tr>
+</table>
+
+<br style="float:none;clear:both;"/>
+<br />
+
+<table  border="0" id="repackBG">
+ <tr > <td id="repackBG">
+<b>Repack Data<b/></td>
+ <tr/>
+ <tr > <td id="repackBG">
+<div style="float:left;padding-right:5px;">
+$repackJobs
+</div> </td><td id="repackBG">
+<div style="float:left;padding-right:5px;">
+$repackFiles
+</div> </td><td id="repackBG">
+<div style="float:left;padding-right:5px;">
+$mergeJobs
+</div></td><td id="repackBG">
+<div style="float:left;padding-right:5px;">
+$mergeFiles
+</div>
+</tr>
+</table>
+
+<br style="float:none;clear:both;"/>
+<br />
+
+
+<table  border="0" id="recoBG">
+ <tr > <td id="recoBG">
+<b>Reco Data<b/></td>
+ <tr/>
+ <tr > <td id="recoBG">
+<div style="float:left;padding-right:5px;">
+$recoJobs
+</div></td><td id="recoBG">
+<div style="float:left;padding-right:5px;">
+
+$recoFiles
+</div></td><td id="recoBG">
+<div style="float:left;padding-right:5px;">
+$recoMergeJobs
+</div></td><td id="recoBG">
+<div style="float:left;padding-right:5px;">
+$recoMergeFiles
+</div>
+</tr>
+</table>
+
+<br style="float:none;clear:both;"/>
+<br />
+
+
+<table  border="0" id="alcaSkimBG">
+ <tr > <td id="alcaSkimBG">
+<b>AlcaSkim Data<b/></td>
+ <tr/>
+ <tr > <td id="alcaSkimBG">
+<div style="float:left;padding-right:5px;">
+$alcaJobs
+</div></td><td id="alcaSkimBG">
+<div style="float:left;padding-right:5px;">
+$alcaFiles
+</div></td><td id="alcaSkimBG">
+<div style="float:left;padding-right:5px;">
+$alcaMergeJobs
+</div></td><td id="alcaSkimBG">
+<div style="float:left;padding-right:5px;">
+$alcaMergeFiles
+</div>
+</tr>
+</table>
+
+<br style="float:none;clear:both;"/>
+<br />
+$depTable
+#include $tmplPath + "footer.html"

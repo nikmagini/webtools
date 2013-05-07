@@ -1,0 +1,104 @@
+#include $tmplPath + "header.html"
+
+#if $dev
+    <div style="background-color:red">
+        Warning: this is development version.
+        Stable version is running on
+        <a href="http://cmsweb.cern.ch/T0Mon/">http://cmsweb.cern.ch/T0Mon/</a>.<br />
+    </div>
+#end if
+<div>
+[<a href="https://twiki.cern.ch/twiki/bin/view/CMS/T0Mon#User_Documentation">T0Mon user documentation</a>]
+<!-- [<a href="http://consult.cern.ch/xwho/people/396802">Contact</a>][<a href="http://vocms13.cern.ch:8300/T0Mon/TemplateUpdate">Update All Template Classes</a>] -->
+</div>
+
+<div>
+<br />
+T0 status @ $time
+<br />
+<br />
+$compT
+</div>
+
+<div>
+$runsT
+<br />
+</div>
+<table>
+   <tr><td id="stats" COLSPAN=4 > <b> Statistics:</b></td>
+  </tr>
+ <tr> <td id="stats">
+<div style="float:left;padding-right:10px;">
+$expressST
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$expressMergeST
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$repackST
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$mergeST
+</div></td>
+</tr><tr><td id="stats">
+<div style="float:left;padding-right:10px;">
+$recoST
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$recoMergeST
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$alcaskimST
+</div></td><td id="stats">
+<div>
+$alcaskimMergeST
+</div></td></tr></table>
+ <br /> 
+ <br /> 
+
+
+<table> <tr>
+<td id="expressBG">
+<div style="float:left;padding-right:10px;">
+$expressT
+</div></td><td id="expressBG">
+<div style="float:left;padding-right:10px;">
+$expressMergeT
+</div></td> </tr> </table>
+
+<br style="float:none;clear:both;"/>
+<br />
+
+<table> <tr>
+<td id="repackBG">
+<div style="float:left;padding-right:10px;">
+$repackerT
+</div></td><td id="repackBG">
+<div style="float:left;padding-right:10px;">
+$mergeT
+</div></td> </tr> </table>
+
+<br style="float:none;clear:both;"/>
+<br />
+<table> <tr>
+<td id="recoBG">
+<div style="float:left;padding-right:10px;">
+$recoT
+</div></td><td id="recoBG">
+<div>
+$recoMergeT
+</div></td> </tr> </table>
+
+<br style="float:none;clear:both;"/>
+<br />
+<table> <tr>
+<td id="alcaSkimBG">
+<div style="float:left;padding-right:10px;">
+$alcaskimT
+</div></td><td id="alcaSkimBG">
+<div>
+$alcaskimMergeT
+</div></td> </tr> </table>
+
+
+#include $tmplPath + "footer.html"

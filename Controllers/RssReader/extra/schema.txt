@@ -1,0 +1,3 @@
+CREATE TABLE user (id INTEGER PRIMARY KEY, fname VARCHAR(20), sname VARCHAR(20), number INTEGER, frequency INTEGER);
+CREATE TABLE urls (id INTEGER PRIMARY KEY, address VARCHAR(200));
+CREATE TABLE registration (user INTEGER, url INTEGER, PRIMARY KEY (user, url));

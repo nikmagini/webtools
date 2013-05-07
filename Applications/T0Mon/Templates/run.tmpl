@@ -1,0 +1,145 @@
+#include $tmplPath + "header.html"
+
+<div>
+Run $runid status @ $time 
+[<a href = "/T0Mon/">Back to main page</a>]
+</div>
+<br />
+<br />
+
+<div style="float:left;padding-right:5px;">
+$runConfigExpressKeyT
+</div>
+<br style="float:none;clear:both;"/>
+<br />
+
+
+
+<div style="float:left;padding-right:5px;">
+$runConfigKeyT
+</div>
+<br style="float:none;clear:both;"/>
+<br />
+
+<table>
+   <tr><td id="stats" COLSPAN=4 > <b> Statistics:</b></td>
+  </tr>
+ <tr> <td id="stats">
+<div style="float:left;padding-right:10px;">
+$runExpressStatsT
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$runExpressMergeStatsT
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$runRepackStatsT
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$runMergeStatsT
+</div></td>
+</tr><tr><td id="stats">
+<div style="float:left;padding-right:10px;">
+$runRecoStatsT
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$runRecoMergeStatsT
+</div></td><td id="stats">
+<div style="float:left;padding-right:10px;">
+$runAlcaskimStatsT
+</div></td><td id="stats">
+<div>
+$runAlcaskimMergeStatsT
+</div></td></tr></table>
+ <br /> 
+ <br /> 
+
+
+<!--
+<div style="float:left;padding-right:5px;">
+$runExpressStatsT
+</div>
+<div style="float:left;padding-right:5px;">
+$runExpressMergeStatsT
+</div>
+
+<div style="float:left;padding-right:5px;">
+$runRepackStatsT
+</div>
+
+<div style="float:left;padding-right:5px;">
+$runMergeStatsT
+</div>
+
+
+<br style="float:none;clear:both;"/>
+<br />
+
+
+
+<div style="float:left;padding-right:5px;">
+$runRecoStatsT
+</div>
+
+<div style="float:left;padding-right:5px;">
+$runRecoStatsT
+</div>
+
+<div style="float:left;padding-right:5px;">
+$runAlcaskimStatsT
+
+</div>
+
+<div style="float:left;padding-right:5px;">
+$runAlcaskimMergeStatsT
+</div>
+
+<br style="float:none;clear:both;"/>
+<br />-->
+
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runStreamerT
+</div>
+<table><tr><td id="expressBG">
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runExpressT
+</div></td><td id="expressBG">
+
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runExpressMergeT
+</div></td></tr></table>
+
+<br style="float:none;clear:both;"/>
+<br />
+<table><tr><td id="repackBG">
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runRepackT
+</div></td><td id="repackBG">
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runRepackMergeT
+</div></td></tr></table>
+
+<br style="float:none;clear:both;"/>
+<br />
+
+<table><tr><td id="recoBG">
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runRecoT
+</div></td><td id="recoBG">
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runRecoMergeT
+</div></td></tr></table>
+
+<br style="float:none;clear:both;"/>
+<br />
+<table><tr><td id="alcaSkimBG">
+<div style="float:left;padding-right:5px;padding-bottom:5px">
+$runAlcaskimT
+</div></td><td id="alcaSkimBG">
+<div style="float:left;padding-bottom:5px">
+$runAlcaskimMergeT
+</div></td></tr></table>
+
+<br style="float:none;clear:both;"/>
+
+
+#include $tmplPath + "footer.html"

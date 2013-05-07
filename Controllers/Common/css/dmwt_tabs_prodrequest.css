@@ -1,0 +1,19 @@
+@CHARSET "UTF-8";
+.yui-navset ul, .yui-navset li { 
+	color: white;
+}
+.yui-navset .yui-nav .selected a, .yui-navset .yui-nav .selected a:hover, .yui-navset .yui-content{
+	background-color: rgb(255, 233, 179); /* active tab and tab hover #f6f7ee */
+	color: rgb(255, 55, 10);
+}
+.yui-navset .yui-nav li a, .yui-navset .yui-content {
+    border:1px solid black;  /* label and content borders */
+}
+.yui-navset .yui-nav a:hover{
+	background:red;
+	color:white;
+}
+.yui-navset .yui-nav a{
+	background:rgb(255, 55, 10);
+	color: white
+}

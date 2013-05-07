@@ -1,0 +1,24 @@
+@CHARSET "UTF-8";
+
+#footer{
+	width:100%;
+	left: 0px; 
+	position: absolute; 
+}
+
+#footer .bd {
+	background:rgb(229, 236, 249);
+	border:solid rgb(100, 105, 115) 0px;
+	border-top-width: 1px;
+	height:24px; 
+  padding:2px;
+  padding-top:0px;
+  padding-left:10px;
+  margin:0px;
+  margin-top: 10px;
+	vertical-align:middle;
+	line-height:10px;
+}
+#footer .bd p{
+	color:rgb(100, 105, 115);
+}

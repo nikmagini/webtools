@@ -1,0 +1,11 @@
+#!/bin/sh
+
+proj_dir=/data/projects/T0Mon
+ws_name="T0Mon"
+ws_ver="0.5.2-cmp"
+ws_page="/T0Mon"
+ws_port="8030"
+ws_base="prodmon"
+
+source $WEBTOOLS_STARTUP/base/setup.sh
+$WEBTOOLS_STARTUP/base/cmsweb_service $@

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+proj_dir=/data/projects/sitedb
+ws_name="sitedb"
+ws_ver="1.2.3-cmp2"
+ws_page="/sitelist/ --my-sitedb-ini=$proj_dir/config/sitedb.ini"
+ws_port="8055"
+ws_base="sitedb"
+
+source $WEBTOOLS_STARTUP/base/setup.sh
+$WEBTOOLS_STARTUP/base/cmsweb_service $@

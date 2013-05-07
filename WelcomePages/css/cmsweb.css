@@ -1,0 +1,83 @@
+* {
+  margin:0;
+  padding:0;
+  font-size:16px;
+  font-family:arial,helvetica,clean,sans-serif;
+  line-height:1.22em;
+  border:0;
+}
+
+body {
+  background-image:url(../img/bk.gif);
+  background-repeat: repeat;
+}
+
+ul {
+  list-style:none;
+}
+
+a, a:link, a:visited, a:hover, a:active {
+  text-decoration:none;
+  color:#43516F
+}
+
+a:hover {
+  color:#7087B9;
+}
+
+#main {
+  padding:10px 0px 150px 50px;
+  margin:0 auto;
+  margin-top: 8px;
+  margin-bottom:50px;
+  width:600px;
+  background-color:#f7f7fd;
+  border:1px solid #9CA5B5;
+  position:relative;
+}
+
+.box {
+  color:#553;
+  padding-top: 20px;
+}
+
+.boxTitle {
+  float:right;
+  margin-right:50px;
+}
+
+.boxSubtitle {
+  color:#663;
+  padding-top:20px;
+}
+
+.boxLinkContainer {
+  margin-top:100px;
+}
+
+.boxSubtitle {
+  font-weight:bold;
+  font-size:16px;
+  padding-top:20px;
+  padding-left:10px;
+}
+
+.boxLinks {
+  list-style:url(../img/dice.gif) circle;
+  padding-left:35px;
+}
+
+#bottom {
+  position:absolute;
+  bottom:0;
+  left:0;
+  width:645px;
+  background-color:#E7DFEC;
+  padding:5px 0 5px 5px;
+  border-top:1px solid #9CA5B5;
+  color:#824040;
+}
+
+.boxFooter {
+  float:right;
+}

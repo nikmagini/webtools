@@ -1,0 +1,54 @@
+Organizers
+==========
+
+* Giulio <giulio.eulisse@cern.ch>
+* Valentin <vkuznet@gmail.com>
+
+People Involved and their responsibilities
+==========================================
+
+Plan for the next 3 months
+==========================
+
+* Item 1
+Review savahhan bugs, make them active and assign them to appropriate people
+* Item 2
+Place all bug reports into one place, where?
+* Item 3
+Review dashboard integration with WEBTOOLS and it's overall design
+* Item 4
+Outline plans for release integration into WEBTOOLS
+* Item 5
+Outline plans for nightly packaing integration into WEBTOOLS
+* Item 6
+Add standard directory structure for WEBTOOLS deployment on back-end nodes,
+cmswt01 and cmswt02. Assign operator to perform installation and update.
+* Item 7
+Outline plans for failover on front-end nodes
+* Item 8
+Review SSL rules on front-end nodes, pass back to back-ends the user credentials.
+* Item 9
+Fix masthead to avoid relative paths, otherwise off-site installation and stand-alone modes
+do not work.
+* Item 10
+Web-services, REST and AJAX responses
+* Item 11
+service configuration template
+* Item 12
+common templates for tables, lists, selects, etc.
+The template should contains common tags/attributes, such as ability to
+pass around style, size, etc. We also need to agree how to pass python
+object to such template, I would vote for generic dictionary, but it  
+may not work for all cases.
+* Item 13
+since we use AJAX quite a lot we can think of common framework class
+which will create AJAX response in a common way.
+* Item 14
+create a common JavaScript library, I have a lot of functions which can
+be used everywhere, such as ShowTag, HideTag, enable/disable certain
+elements, etc.
+* Item 15
+it would be nice to delegate to framework the auto-load of
+schema. Handling various DB back-ends and query generation. I'm  
+already doing this stuff, but it may not work for all projects.
+

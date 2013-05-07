@@ -1,0 +1,270 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>SecurityModule.pm - Web Security Module</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:Gentoo@dflt1.psi.ch" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<ul>
+
+		<li><a href="#initialization">Initialization</a></li>
+		<li><a href="#convenience_functions_for_condition_tests">Convenience Functions for condition tests</a></li>
+		<li><a href="#functions_to_retrieve_user_information">Functions to retrieve user information</a></li>
+		<li><a href="#calling_the_password_form_via_a_web_page__login__link_">Calling the password form via a web page 'Login' link:</a></li>
+	</ul>
+
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#issues___todo">ISSUES / TODO</a></li>
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<hr />
+<h1><a name="name">NAME</a></h1>
+<p>SecurityModule.pm - Web Security Module</p>
+<p>
+</p>
+<hr />
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p>Note: This applies specifically to the MySQL implementation. There is also
+a SecurityModule::SQLite implementation.</p>
+<pre>
+  use SecurityModule::MySQL;
+  $sec = new SecurityModule::MySQL({CALLER_URL =&gt; $myurl,
+                                    CONFIG =&gt; &quot;/etc/sec/SecMod.conf&quot;;
+                                    LOGLEVEL =&gt; 5,
+                                    KEYVALIDTIME =&gt; 7200,
+                                    PWDFORM_HANDLER =&gt; \&amp;myPasswordForm
+                                   });</pre>
+<pre>
+  $ret = $sec-&gt;init(); # returns 0 in case of failure</pre>
+<pre>
+  $errmsg = $sec-&gt;getErrMsg(); # returns error message</pre>
+<pre>
+  # if getCookie() returns a defined value, your page needs to make
+  # sure that this cookie will be set using CGI.pm's
+  # header(-cookie =&gt; $cookie ) command
+  if( ($cookie=$sec-&gt;getCookie) ) {
+    print header(-cookie =&gt; $cookie );
+  } else {
+    print header();
+  }</pre>
+<pre>
+  # Access to authentication / authorization information
+  $state = $sec-&gt;getAuthnState(); # returns (failed | cert | passwd)
+  $user_dn = $sec-&gt;getDN(); # returns user's distinguished name
+  $roles = $sec-&gt;getRoles(); # returns a hash of roles, each role mapping to a
+                             # list of scopes</pre>
+<pre>
+  # Protecting functions: reqAuthnCert() and reqAuthnPasswd()
+  sub my_certificate_protected_function {
+    $sec-&gt;reqAuthnCert();
+    ...
+  }
+  sub my_password_protected_function {
+    $sec-&gt;reqAuthnPasswd();
+    ...
+  }</pre>
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>The SecurityModule handles authentication and authorization to a web site. Users
+are identified by a certificate loaded in their browser or by a previously
+set cookie that was issued upon a successful password authentication.</p>
+<p>Certificate based authentication is the strongest authentication type,
+so functions protected by the <code>reqAuthnPasswd()</code> method will allow
+access to certificate authenticated users, but <code>reqAuthnCert()</code> will deny
+access to password authenticated users.</p>
+<p>The SecurityModule was written for a setup where a <strong>remote Proxy</strong> mediates access
+to a number of backend servers. The remote proxy handles
+the SSL authentication and is required to set the following request headers to
+the values of the respective environment variables for this request:</p>
+<p><strong>SSL_CLIENT_VERIFY</strong>,
+<strong>SSL_CLIENT_S_DN</strong>,
+<strong>HTTPS</strong>.</p>
+<p>On the backend servers these must be available as environment variables of identical names
+except for the prefix <strong>HTTP_</strong>, e.g. <strong>HTTP_SSL_CLIENT_S_DN</strong>.</p>
+<p>Since all backend servers are hidden behind the reverse proxy, an authentication
+cookie is set restrictively to only be sent back to the issueing server. The
+necessary translation for the proxy is handled transparently by apache's mod_proxy
+module (needs &gt;= apache-2.2).</p>
+<p>The SecurityModule can also be run without a reverse proxy in pure SSL mode if
+the REVPROXY directive is left out or set to 0.</p>
+<p>
+</p>
+<h2><a name="initialization">Initialization</a></h2>
+<p>Arguments which can be passed to the constructor:</p>
+<ul>
+<li>
+<p><strong>CALLER_URL</strong>: (Required) URL of the current page that was invoked by
+the browser, i.e. it must contain the URL which the reverse proxy got
+before redirecting to the backend server.</p>
+</li>
+<li>
+<p><strong>CONFIG</strong>: Filename of a configuration file. The file must contain ``option = value''
+lines as in this example:</p>
+<pre>
+   LOGFILE = /tmp/SecMod.log
+   REVPROXY = 137.138.65.249,137.138.65.224
+   LOGLEVEL = 5
+   KEYVALIDTIME = 1500
+   # Comments and empty lines are allowed
+   DBHOST = localhost
+   DBPORT = 3306
+   DBNAME = secmod
+   DBUSER = smwriter
+   DBPASS = mypasswd
+   REQCERT_FAIL_HANDLER = https://localhost/bclear/testSecMod/nopermission
+   PWDFORM_HANDLER = https://localhost/bclear/testSecMod/passform</pre>
+<p><strong>Note</strong>: The configuration options specified in the constructor will override
+any options specified in the configuration file.</p>
+</li>
+<li>
+<p><strong>REVPROXY</strong>: comma separated list of the IP addresses of allowed
+reverse proxies.  If this directive is ommitted, the module will work
+in non reverse proxy mode. If defined and the module receives a
+connection from a not allowed host, a high priority warning is issued
+to the log.</p>
+</li>
+<li>
+<p><strong>KEYVALIDTIME</strong>: Validity time in seconds of generated keys</p>
+</li>
+<li>
+<p><strong>PWDFORM_HANDLER</strong>: URL or reference to a function generating a
+password page. If a function reference is given, two values will be
+passed into the function: The URL of the present page (so we can get
+back) and a status message describing why the password form was
+called. If an URL is given, the two values will be passed using a
+query string (?caller_url=...&amp;msg=...) in the redirection.</p>
+<pre>
+        Status messages: password authentication required
+                         reauthentication
+                         invalid cookie</pre>
+<p>item *</p>
+<p><strong>SIGNUP_HANDLER</strong>: URL or reference to a function implementing a sign up
+page. Users which are not registered in the system (internally: users with
+no entry in the contacts table of SiteDB), but whose certificate was
+accepted by the web server are redirected to the sig up page. The same applies
+to users who have a valid login/password (since this information
+is synced from an external source), but are not registered with SiteDB yet.</p>
+</li>
+<li>
+<p><strong>REQCERT_FAIL_HANDLER</strong>: URL or reference to a function to call when a page secured by
+<code>reqAuthnCert()</code> is encountered and the client is not certificate authenticated.
+Typically, to display some diagnostic message.</p>
+</li>
+<li>
+<p><strong>LOGFILE</strong>: Filename of the logfile. If this is undefined, all log messages
+are written to STDERR, i.e. they should end up in the web server's error log.</p>
+</li>
+<li>
+<p><strong>LOGLEVEL</strong>: Integer value from 0-5</p>
+<pre>
+      0: no log messages at all
+      1: error and security relevant messages only
+      3: Logs password authentications (standard log level)
+      5: debugging messages</pre>
+</li>
+<li>
+<p>For the MySQL implementation you can also supply the DB connection parameters
+<strong>DBHOST, DBPORT, DBNAME, DBUSER, DBPASS</strong></p>
+</li>
+<li>
+<p>For the SQLite implementation you only need to supply a <strong>DBFILE</strong> parameter
+with the location of the data base file.</p>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="convenience_functions_for_condition_tests">Convenience Functions for condition tests</a></h2>
+<p>these functions can be used to formulate conditions easily</p>
+<ul>
+<li>
+<p>isSecure(): returns 1 if connection is SSL secured, 0 otherwise</p>
+</li>
+<li>
+<p>isAuthenticated(): returns 1 if user is authenticated either by certificate or
+by password/cookie, 0 otherwise</p>
+</li>
+<li>
+<p>isCertAuthenticated(): returns 1 if user is authenticated by SSL/certificate, 0
+otherwise</p>
+</li>
+<li>
+<p>isPasswdAuthenticated(): returns 1 if user is authenticated by password, 0 otherwise</p>
+</li>
+<li>
+<p><code>hasRole(role)</code> or hasRole(role,scope): returns 1 if user is authorized to have the given role
+or the given role/scope pair., 0 otherwise</p>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="functions_to_retrieve_user_information">Functions to retrieve user information</a></h2>
+<p>These functions can be used to retrieve additional information about a user</p>
+<ul>
+<li>
+<p>getID(): returns the user ID. This is the principal authentication token</p>
+</li>
+<li>
+<p>getDN(): returns the associated distinguished name</p>
+</li>
+<li>
+<p>getUsername(): returns the short name used as the login name</p>
+</li>
+<li>
+<p>getSurname(), getForename(): normal human name of the user</p>
+</li>
+<li>
+<p>getEmail(): returns user's email</p>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="calling_the_password_form_via_a_web_page__login__link_">Calling the password form via a web page 'Login' link:</a></h2>
+<p>You can pass <strong>SecModPwd=1</strong> as a GET variable to any page using the
+SecurityModule. This will call the handler for / redirect to the password form
+and insure that the user can return to the same page (the original page will
+be encoded in the caller_url parameter)</p>
+<p>
+</p>
+<hr />
+<h1><a name="author">AUTHOR</a></h1>
+<p>Derek Feichtinger &lt;<a href="mailto:derek.feichtinger@psi.ch">derek.feichtinger@psi.ch</a>&gt;</p>
+<p>CMS web interfaces group &lt;<a href="mailto:hn-cms-webInterfaces@cern.ch">hn-cms-webInterfaces@cern.ch</a>&gt;</p>
+<p>
+</p>
+<hr />
+<h1><a name="issues___todo">ISSUES / TODO</a></h1>
+<p>List of issues to resolve:</p>
+<ul>
+<li>
+<p>POST arguments are not carried across the password form</p>
+</li>
+<li>
+<p>The mapping from username to certificate distinguished name needs to be established
+separately.</p>
+</li>
+<li>
+<p>Look at ``TODO'' comments in the code.</p>
+</li>
+</ul>
+
+</body>
+
+</html>

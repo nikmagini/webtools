@@ -1,0 +1,11 @@
+#!/bin/sh
+
+proj_dir=/data/projects/dbs
+ws_name="dbs-web"
+ws_ver="V05_00_04-cmp"
+ws_page="/DDServer"
+ws_port="8003"
+ws_base="dbs_discovery"
+
+source $WEBTOOLS_STARTUP/base/setup.sh
+$WEBTOOLS_STARTUP/base/cmsweb_service $@

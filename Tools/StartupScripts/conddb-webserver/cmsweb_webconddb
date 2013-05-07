@@ -1,0 +1,61 @@
+#!/bin/bash
+#chkconfig: 345 73 33
+#description: cmsweb_webconddb This script runs CMS WebCondDB service
+
+. /etc/init.d/functions
+
+if [ -z ${WEBCONDDB_ROOT} ]; then
+  . /data/projects/condDB/setup.sh
+fi 
+
+port=`cat  ${WEBCONDDB_ROOT}/etc/init.d/webconddb.conf | grep -i "port=" | tail -1 | sed "s/port=//g"`
+frontend=https://cmsweb.cern.ch
+base=conddb
+baseurl=$frontend/$base
+pidfile=`cat ${WEBCONDDB_ROOT}/etc/init.d/webconddb.conf  | grep -i "^pidfile=" | tail -1 | sed "s/pidfile=//g"`
+logfile=`cat ${WEBCONDDB_ROOT}/etc/init.d/webconddb.conf  | grep -i "^logfile=" | tail -1 | sed "s/logfile=//g"`
+
+start(){
+    source ${WEBCONDDB_ROOT}/etc/profile.d/init.sh
+    if [ -f ${WEBCONDDB_ROOT}/${pidfile} ]; then
+	PID=`cat ${WEBCONDDB_ROOT}/${pidfile}`
+	if [ -n `ps -o pid= ${PID}` ]; then
+	    exit 2;
+	else
+	    /bin/rm -f ${WEBCONDDB_ROOT}/${pidfile}
+	fi 
+    fi
+    su cmsweb -c "nice -n 0 cmsWeb --base-url ${baseurl} -p ${port} --default-page /IOVManagement/index --pid-file ${WEBCONDDB_ROOT}/${pidfile}>> ${WEBCONDDB_ROOT}/${logfile} 2>&1 &"
+    return 0
+}
+
+stop(){
+    if [ -f ${WEBCONDDB_ROOT}/${pidfile} ]; then
+	/usr/bin/kill -9 `cat ${WEBCONDDB_ROOT}/${pidfile}`
+	/bin/rm -f ${WEBCONDDB_ROOT}/${pidfile}
+    fi
+    return 0
+}
+
+
+NO_ARGS=0
+E_OPTERROR=65
+if [ $# -eq "$NO_ARGS" ]; then
+   exit $E_OPTERROR
+fi
+
+case "$1" in
+  start)
+    
+       start
+       ;;
+  stop)
+       stop
+       ;;
+  *)
+       exit 1
+esac
+exit $?
+
+
+

@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head>
+
+
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="keywords" content="PhEDEx, file transfer, transfer request">
+  
+  <link rel="stylesheet" href="Activity_Rate_files/nifty-screen.css" type="text/css">
+  <link rel="stylesheet" href="Activity_Rate_files/nifty-print.css" type="text/css" media="print">
+  <link rel="shortcut icon" href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/favicon.ico">
+  <link rel="stylesheet" href="Activity_Rate_files/style.css" type="text/css">
+  <script type="text/javascript" src="Activity_Rate_files/stripe.js"></script>
+  <script type="text/javascript" src="Activity_Rate_files/nifty.js"></script>
+  <script type="text/javascript"><!--
+    function hideshow(link,item,hide) {
+      var obj = document.getElementById(item);
+      if (obj.style.display == '')
+      {
+        obj.style.display = 'none';
+	if (hide) link.style.display = '';
+      }
+      else
+      {
+        obj.style.display = '';
+	if (hide) link.style.display = 'none';
+      }
+      return false;
+    }
+
+    function showtab(tab) {
+	var i=0;
+	var tabobj;
+	var paneobj;
+	for (i=0;i<10;i++) {
+	    tabobj = document.getElementById('optstab'+i);
+	    paneobj = document.getElementById('optspane'+i);
+	    if (tab == i) {
+		tabobj.className = 'raised';
+		paneobj.style.display = '';
+	    } else {
+		tabobj.className = 'lowered';
+		paneobj.style.display = 'none';
+	    }
+        }
+	return false;
+    }
+
+function select_all(form_id, name, value) {
+    var formblock= document.getElementById(form_id);
+    var forminputs = formblock.getElementsByTagName('input');
+    for (i = 0; i < forminputs.length; i++) {
+	if (forminputs[i].getAttribute('name') == name) {
+	    if (value == '1') {
+		forminputs[i].checked = true;
+	    } else {
+		forminputs[i].checked = false;
+	    }
+	}
+    }
+}
+
+--></script><title>Production Activity &#8211; Rate - CMS PhEDEx</title>
+
+		<script type="text/javascript" src="../yui/build/yahoo/yahoo-min.js"></script>
+		<script type="text/javascript" src="../yui/build/dom/dom-min.js"></script>
+		<script type="text/javascript" src="../yui/build/event/event-min.js"></script> 
+		<script type="text/javascript" src="../yui/build/container/container_core-min.js"></script>
+		<script type="text/javascript" src="../Studio/masthead"></script>
+		<link rel="stylesheet" type="text/css" href="../Studio/css/dmwt_main.css">
+</head>
+<body onload='insertMastHead ("phedex"); stripe("#fff", "#edf3fe");
+  if (! NiftyCheck()) return;
+  Rounded("div.toc", "top", "transparent", "#e4f1db");
+  // Rounded("div.menuopt li", "top", "transparent", "#e4f1db");' id="content">
+</head>
+<!-- <body onload='  stripe("#fff", "#edf3fe");
+  if (! NiftyCheck()) return;
+  Rounded("div.toc", "top", "transparent", "#e4f1db");
+  // Rounded("div.menuopt li", "top", "transparent", "#e4f1db");'> -->
+<div id="page">
+<div id="header">
+ <!-- Logo and page title -->
+ <div id="logo">
+  <a href="http://cern.ch/cms-project-phedex/" title="PhEDEx Home Page"><img src="Activity_Rate_files/phedex-logo-small.gif" alt="PhEDEx" height="80"></a>
+ </div> <!-- /logo -->
+
+ <div id="heading">
+  <h1 class="title">PhEDEx &#8211; CMS Data Transfers</h1>
+  <div class="pagenav">
+   <div class="catopt">
+ <ul>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Info::Main?view=global">Info</a></li>
+  <li class="selected"><span>Activity</span></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Data::Replicas?view=global" title="Explore replicas">Data</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Request::Main?view=global" title="Quick overview of transfer requests">Requests</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Configuration::SignUp?view=global" title="Sign up to be a transfer administrator">Configuration</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Components::Status?view=global" title="View recently active PhEDEx components">Components</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Reports::DailyReports?view=global" title="Browse all daily reports">Reports</a></li>
+ </ul>
+</div>
+   <div class="menuopt">
+ <ul>
+  <li class="selected"><span>Rate</span></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Activity::RatePlots?view=global" title="Show recent transfer rate as plots">Rate Plots</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Activity::QueuePlots?view=global" title="Show pending transfer queue plots">Queue Plots</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Activity::QualityPlots?view=global" title="Show transfer quality plots">Quality Plots</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Activity::TransferState?view=global" title="Show overview of the transfer situation">Transfer State</a></li>
+  <li><a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/Activity::TransferStates?view=global" title="Browse transfer state details">Transfer Details</a></li>
+ </ul>
+</div>
+  </div> <!-- /pagenav -->
+ </div> <!-- /heading -->
+</div> <!-- /header -->
+
+<!-- main content -->
+<div id="content">
+<center><div class="warning">Hoy!  The production server is <a href="http://cmsdoc.cern.ch/cms/aprom/phedex/prod/Activity::Rate?andor=or;view=global;span=d;tofilter=">over this way</a>. This is a test server for the developers. You might wish to update your bookmarks.</div></center>
+<center><div class="warning">
+ <p>This PhEDEx instance is not capable
+of providing this feature. Perhaps you meant to select another PhEDEx
+instance in the instance menu above?</p></div></center>
+
+</div>
+</div> <!-- /page -->
+
+<!-- side navigation panel -->
+<div class="viewnav">
+ <div class="dbopt">
+  <h3 style="margin-top: 0pt;">Instance</h3>
+  <i>Production</i>&nbsp;<a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/prod/DB?view=global" onclick='return hideshow(this,"dbopts",0)'>»»</a>
+  <div id="dbopts" style="display: none;">
+   <a href="#" onclick='return hideshow(this,"dbopts",0)'><img src="Activity_Rate_files/x.gif" alt="Close menu" style="margin: 0.5ex -0.5ex 0.1ex 1ex; position: relative;" align="right" border="0" height="13" width="13"></a>
+   <a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/sc/Activity::Rate?andor=or;view=global;span=d;tofilter=" title="SC4 database instance">SC4</a><br>
+   <a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/test/Activity::Rate?andor=or;view=global;span=d;tofilter=" title="Dev database instance">Dev</a><br>
+   <a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/tbedi/Activity::Rate?andor=or;view=global;span=d;tofilter=" title="Testbed database instance">Testbed</a><br>
+   <a href="http://cmsdoc.cern.ch/cms/test/aprom/phedex/tbed/Activity::Rate?andor=or;view=global;span=d;tofilter=" title="Validation database instance">Validation</a><br>
+  </div>
+ </div>
+ <div>
+  <p><span style="color: rgb(102, 102, 102);">Not signed in</span> | <a href="https://cmsdoc.cern.ch:8443/cms/test/aprom/phedex/prod/Activity::Rate?andor=or;span=d;tofilter=">Sign in</a></p>
+ </div>
+<div><h3 style="color: rgb(102, 102, 102);">Global view</h3><p style="color: rgb(102, 102, 102);">(Sign in to change)</p></div>
+</div>
+
+<!-- options panel -->
+<div id="opts" style="display: none;">
+
+</div>
+
+
+</body></html>

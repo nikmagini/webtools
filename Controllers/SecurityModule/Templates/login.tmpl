@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+    <title>CMS Computing Web Interface Login Page</title>
+    <link rel="stylesheet" type="text/css" href="../SecurityModule/css/LoginDialog.css"/> 
+    <style>
+    label,input,textarea,select {
+    	display: block;
+    	width: 250px;
+    	margin-bottom: 10px;
+    	margin-left: 100px;
+    	float: left;
+    }
+
+    label {
+        text-align: right;
+        width: 150px;
+        padding-right: 20px;
+    }
+
+    br {
+    	clear: left;
+    }
+    
+    fieldset {
+        border: none;
+    }
+    </style>   
+</head>
+<body>
+    <div id="LoginDialog" class="LoginDialog">
+        <div class="hd"><strong>Welcome to CMS Computing Web Interface.</strong><br/>Please identify yourself.</div>
+        <div class="bd">
+            <form action="../SecurityModule/authenticate" method="post">
+				<fieldset>
+                <label for="user">Hypernews Username:</label>
+                <input id="user" name="user" type="text"/><br/>
+                <label for="password">Password:</label>
+                <input id="password" name="password" type="password"/><br/>
+                <input id="login" type="submit" value="login"/><br/>
+                <input type="hidden" name="requestedPage" value="$requestedPage"/>
+				</fieldset>
+            </form>
+        </div>
+        <div class="ft"></div>
+    </div>    
+</body>
+</html>

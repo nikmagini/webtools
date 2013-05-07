@@ -1,0 +1,98 @@
+#!/usr/bin/perl
+BEGIN { use strict; use warnings; $^W=1; }
+use POSIX;
+
+die "usage: $0 conf-dir restart...\n" if scalar @ARGV < 2;
+my $destdir = shift @ARGV;
+-w "$destdir" || die "$destdir: not a writeable directory\n";
+
+# Build new CA and CRL bundles.
+my $cern_ca_pem = "";
+my $grid_ca_pem = "";
+my $grid_crl_pem = "";
+foreach my $f (</etc/grid-security/certificates/*.0>)
+{
+  local $/ = undef;
+  my $finfo = $f; $finfo =~ s/\.0$/\.info/;
+  my $fcrl = $f; $fcrl =~ s/\.0$/\.r0/;
+  my $info = "";
+
+  if (-r $finfo)
+  {
+    open(F, "< $finfo") || die "$finfo: $!\n";
+    $info = <F>;
+    close(F);
+  }
+
+  open(F, "< $f") || die "$f: $!\n";
+  my $ca_contents = <F>;
+  close(F);
+
+  my $crl_contents = "";
+  if (-r $fcrl)
+  {
+    open(F, "openssl crl -in $fcrl |") || die "$fcrl: $!\n";
+    $crl_contents = <F>;
+    close(F);
+  }
+
+  $grid_ca_pem .= "$ca_contents\n";
+  $grid_crl_pem .= "$crl_contents\n";
+  $cern_ca_pem .= "$ca_contents\n$crl_contents\n" if ($info =~ /^# CA CERN-/mso);
+}
+
+# Update files if the bundles have changed.
+my $prev_cern_ca_pem = "";
+my $prev_grid_ca_pem = "";
+my $prev_grid_crl_pem = "";
+if (open(F, "< $destdir/cern-ca.pem"))
+{
+  local $/ = undef;
+  $prev_cern_ca_pem = <F>;
+  close(F);
+}
+if (open(F, "< $destdir/grid-ca.pem"))
+{
+  local $/ = undef;
+  $prev_grid_ca_pem = <F>;
+  close(F);
+}
+if (open(F, "< $destdir/grid-crl.pem"))
+{
+  local $/= undef;
+  $prev_grid_crl_pem = <F>;
+  close(F);
+}
+
+my $updated = 0;
+if ($prev_cern_ca_pem ne $cern_ca_pem)
+{
+  ++$updated;
+  (open(F, "> $destdir/cern-ca.pem")
+   && print(F $cern_ca_pem)
+   && close(F)) || die "$destdir/cern-ca.pem: $!\n";
+}
+
+if ($prev_grid_ca_pem ne $grid_ca_pem)
+{
+  ++$updated;
+  (open(F, "> $destdir/grid-ca.pem")
+   && print(F $grid_ca_pem)
+   && close(F)) || die "$destdir/grid-ca.pem: $!\n";
+}
+
+if ($prev_grid_crl_pem ne $grid_crl_pem)
+{
+  ++$updated;
+  (open(F, "> $destdir/grid-crl.pem")
+   && print(F $grid_crl_pem)
+   && close(F)) || die "$destdir/grid-crl.pem: $!\n";
+}
+
+# If updated, relaunch apache.
+if ($updated)
+{
+  system("sudo", @ARGV) == 0 or die "@ARGV: $?\n";
+}
+
+exit 0;

@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+# SITEMON init server script
+#
+# chkconfig: 345 05 95
+
+if [ -z ${SITEMON_SERVICE_HOME} ]; then
+   echo $"The SITEMON_SERVICE_HOME environment is not set"
+   exit 1
+fi
+
+RETVAL=$?
+
+pid=`ps auxw | grep ws_server | grep -v grep | awk '{print $2}'`
+base=ws_server
+
+case "$1" in
+ restart)
+	echo $"Checking for existing process..."
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+	echo $"Restart ..."
+        nohup ${SITEMON_SERVICE_HOME}/ws_server.py 2>&1 1>& /dev/null < /dev/null &
+	;;
+ start)
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+        nohup ${SITEMON_SERVICE_HOME}/ws_server.py 2>&1 1>& /dev/null < /dev/null &
+	;;
+ status)
+        if [ ! -z ${pid} ]; then
+          echo $"${base} is running, pid=${pid}"
+          exit 0
+        fi
+        echo $"${base} is stopped"
+        exit 3
+	;;
+ stop)
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+ 	;;
+ *)
+ 	echo $"Usage: $0 {start|stop|status|restart}"
+	exit 1
+	;;
+esac
+
+exit $RETVAL

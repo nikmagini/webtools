@@ -1,0 +1,56 @@
+#!/bin/bash
+#chkconfig: 345 77 38
+#description: cmsweb_t0mon This script runs CMS T0Mon service
+
+if [ -z ${T0MON_VERSION} ]; then
+   echo $"The T0Mon environment is not set" 2>&1 1>& /dev/null < /dev/null &
+   . /data/projects/T0Mon/setup.sh production
+fi
+
+RETVAL=$?
+
+port=$T0MON_PORT
+pid=`ps auxw | grep cmsWeb | grep -v grep | grep ${port} | awk '{print $2}'`
+base=$T0MON_BASE
+cmd=$T0MON_CMD
+
+start(){
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+    echo $"Start T0Mon Service on port ${port}..."
+        su cmsweb -c "nohup ${cmd} 2>&1 1>& /dev/null < /dev/null &"
+}
+stop(){
+    echo $"Stop T0Mon Service on port ${port}..."
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+}
+restart(){
+    echo $"Checking for existing cmsWeb app running t0mon..."
+        if [ ! -z ${pid} ]; then
+          echo $"Found t0mon running on pid=${pid}, will restart"
+          kill -9 ${pid}
+        fi
+    echo $"Start T0Mon Service on port ${port}..."
+        su cmsweb -c "nohup ${cmd} 2>&1 1>& /dev/null < /dev/null &"
+}
+
+case "$1" in
+    start)
+    start
+    ;;
+    stop)
+    stop
+    ;;
+    restart)
+    restart
+    ;;
+    *)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+
+exit $RETVAL

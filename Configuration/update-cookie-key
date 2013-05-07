@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+BEGIN { use strict; use warnings; $^W=1; }
+use POSIX;
+
+die "usage: $0 dir...\n" if scalar @ARGV == 0;
+
+# Convert date to a short string that is guaranteed to sort in
+# the time-increasing order.  Uses current time, converts it
+# to an integer in <year-month-day-hour> format, and converts
+# the integer to a 5-character base32hex string.
+sub date_to_str
+{
+  $d = strftime("%Y%m%d%H", gmtime(time())) - 2008000000;
+  $t = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  $x = "";
+  while($d > 0)
+  {
+    $r = $d % 32;
+    $d = int($d/32);
+    $x .= substr($t, $r, 1);
+  }
+  $x .= "0" while length($x) < 5;
+  return scalar reverse $x;
+}
+
+# Delete old (> 4 hrs) cookie keys.  This invalidates the cookies
+# using those keys since their HMAC can no longer be verified.
+my $now = time();
+foreach my $d (@ARGV)
+{
+  foreach my $f (<$d/*>)
+  {
+    my $mtime = (stat($f))[9];
+    unlink($f) if $now - $mtime > 4*3600;
+  }
+}
+
+# Generate new random secret key for HMAC.  SHA1-HMAC needs 160-bit
+# keys, or 20 bytes of data.
+my $key = "";
+my $f = $ARGV[0] . "/" . &date_to_str();
+die "$f exists already, will not overwrite key\n" if -f $f;
+open(R, "< /dev/urandom") or die;
+sysread(R, $key, 20) or die;
+close(R) or die;
+
+open(K, "> $f") or die;
+syswrite(K, $key, 20) or die;
+close(K) or die;
+
+exit(0);

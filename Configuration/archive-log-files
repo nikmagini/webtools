@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Determine locations and parameters.
+
+[ $# = 2 ] || { echo "usage: $0 server-dir archive-dir" 1>&2; exit 1; }
+
+srvdir=$1; shift
+[ -d "$srvdir" ] || { echo "$srvdir: no such directory" 1>&2; exit 2; }
+
+archdir=$1; shift
+
+# Compress old logs.
+find $srvdir/logs -name '*_log_*' -mtime +0 -print |
+  while read f; do
+    case $f in *.zip ) continue ;; esac
+    kind=$(echo $f | sed 's/_[0-9]*$//')
+    month=$(echo $f | sed 's/.*_log_//; s/..$//')
+    zip -9Trmuoqj ${kind}_${month}.zip $f ||
+      { echo "$f: failed to archive logs: $?" 1>&2; exit 3; }
+  done
+
+# Add remaining (new) logs but don't remove them.
+find $srvdir/logs -name '*_log_*' -print |
+  while read f; do
+    case $f in *.zip ) continue ;; esac
+    kind=$(echo $f | sed 's/_[0-9]*$//')
+    month=$(echo $f | sed 's/.*_log_//; s/..$//')
+    zip -9Truoqj ${kind}_${month}.zip $f ||
+      { echo "$f: failed to archive logs: $?" 1>&2; exit 4; }
+  done
+
+# Archive logs to secure area.
+rsync --delete --delete-excluded \
+  --exclude '*_log_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' \
+  -auz -e ssh $srvdir/logs/ $archdir/ ||
+  { echo "failed to synchronise logs to $archdir: $?" 1>&2; exit 5; }
+
+exit 0

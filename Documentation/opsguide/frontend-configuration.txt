@@ -1,0 +1,108 @@
+Environment:
+============
+    
+    export APACHE_CONF_DIR=/etc/httpd/conf.d
+
+Before you start:
+=================
+
+Make sure you can ssh as root on the frontend machines.
+
+    ssh -t root@vocms09.cern.ch echo "OK. Can connect to vocms09.cern.ch" 2>/dev/null
+    ssh -t root@vocms08.cern.ch echo "OK. Can connect to vocms08.cern.ch" 2>/dev/null
+    
+which should print out the following:
+
+    OK. Can connect to vocms09.cern.ch
+    OK. Can connect to vocms08.cern.ch
+
+If not, please ask to Andreas Pfeiffer to add to the list of the people who can
+access to the machine.
+
+Environment
+===========
+
+We assume that the following variables are used in the following instructions.
+
+    export APACHE_CONF_DIR=/etc/httpd/conf.d
+    export CVSROOT=":pserver:anonymous@cmscvs.cern.ch/cvs_server/repositories/CMSSW"
+
+Moreover the a variable is used to specify the version of the rules to pick up
+from cvs. This might change over time, so always ask which one is the one to 
+use.
+
+    export RULES_TAG=WT_CONFIG_1
+    
+
+First time configuration of the front-end redirections:
+=======================================================
+
+This is what is needed to configure the frontends so that they pick up their configuration
+from cvs.
+First of all make sure you back up the old configuration (do it only once).
+
+    [ "X$APACHE_CONF_DIR" = X ] && { echo 'Make sure you have $APACHE_CONF_DIR set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cd $APACHE_CONF_DIR
+    [ -e /etc/httpd/conf.d/rewrites.cnf.backup ] && echo "This should be done only once." && exit 1
+    [ -d /etc/httpd/conf.d ] || { echo "Apache not installed. Contact administrator." && exit 1 ; }
+    [ -e /etc/httpd/conf.d/rewrites.cnf ] && cp /etc/httpd/conf.d/rewrites.cnf /etc/httpd/conf.d/rewrites.cnf.backup
+    [ -e /etc/httpd/conf.d/rewrites.cnf.backup ] || { echo "Unable to do the backup. Ask for help." && exit 1; }
+
+Then check-out from cvs the configuration (only once):
+
+    [ "X$APACHE_CONF_DIR" = X ] && { echo 'Make sure you have $APACHE_CONF_DIR set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cd $APACHE_CONF_DIR
+    cvs -d $CVSROOT login
+    # Password is 98passwd
+    cvs -d $CVSROOT co -r $RULES_TAG -d webtools-cfg COMP/WEBTOOLS/Configuration/
+    
+Then create the links to the correct configuration:
+    
+    [ "X$APACHE_CONF_DIR" = X ] && { echo 'Make sure you have $APACHE_CONF_DIR set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cd $APACHE_CONF_DIR
+    [ -d $APACHE_CONF_DIR/webtools-cfg ] || { echo 'You do not have a webtools-cfg directory. Read better the instructions.' && exit 1 ; }
+    ln -sf $APACHE_CONF_DIR/webtools-cfg/rewrites.cnf $APACHE_CONF_DIR/rewrites.cnf
+    [ -h $APACHE_CONF_DIR/rewrites.cnf ] || { echo 'Unable to create the link. Ask for help.' && exit 1 ; }
+
+Test that the new configuration is correct:
+
+    service httpd configtest
+
+Restart apache
+
+    apachectl restart
+
+Updating rules on the frontend machines.
+========================================
+
+Make sure you repeat the following instructions for both vocms08 and vocms09.
+This is what to do to update the rules on the frontend. First of all you need 
+get a tag for the rules that you need. This is given by a developer.
+
+    
+Then execute the following:
+
+    [ "X$APACHE_CONF_DIR" = X ] && { echo 'Make sure you have $APACHE_CONF_DIR set correctly. Ask if you do not know what to use.' && exit 1 ; }
+    cd $APACHE_CONF_DIR/webtools-cfg
+    cvs -d $CVSROOT login
+    # Password is 98passwd
+    cvs -d $CVSROOT update -r $RULES_TAG
+
+Then restart apache with:
+
+    apachectl restart
+
+Checking that everything works
+==============================
+
+In order to consider an update successful, the following things must be checked:
+
+* <https://cmsweb.cern.ch/> must show the initial index page for cmsweb.
+* <https://cmsweb.cern.ch/prodrequest> must show the initial webtools page.
+* <https://cmsweb.cern.ch/sitedb> must show the initial sitedb page.
+* <https://cmsweb.cern.ch/dbs_discovery> must show the initial dbs page.
+* <https://cmsweb.cern.ch/prodmon> must show the initial prodmon page.
+* <https://cmsweb.cern.ch/conddb> must show the conddb pages.
+
+Whoever updates the rules **MUST** complete the checklist before considering the 
+update done.

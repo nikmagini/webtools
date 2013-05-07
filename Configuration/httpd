@@ -1,0 +1,263 @@
+#!/bin/bash
+# chkconfig: - 85 15
+# description: CMS custom web server.
+# processname: httpd
+# config: @SERVER_ROOT@/conf/apache2.conf
+# pidfile: @SERVER_ROOT@/var/httpd.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source run time environment.
+for file in @SERVER_ROOT@/etc/startenv.d/*.sh; do
+  [ -f $file ] || continue
+  . $file
+done
+
+# Set OPENSSL_ALLOW_PROXY_CERTS to accept RFC3820 proxy certificates.
+# One day this might be sufficient for mod_ssl to accept proxies. For
+# now we use VDT's mod_ssl GSI patch instead and leave this variable
+# disabled because because "old" grid proxies (myproxy, voms) aren't
+# conforming to RFC3820, and also the variable appears to make no
+# difference - possibly because mod_ssl cert verify is being reached
+# via an internal subrequest renaming environment variables, and/or
+# because mod_ssl needs a certificate validation callback to verify
+# critical extensions in addition to this flag. More info at:
+#
+# http://www.openssl.org/docs/HOWTO/proxy_certificates.txt
+# http://security.ncsa.illinois.edu/research/wssec/gsihttps/gsiapache.html
+# http://vdt.cs.wisc.edu/internal/apache-wisdom.html
+# http://www.nikhef.nl/~janjust/proxy-verify/
+#
+# export OPENSSL_ALLOW_PROXY_CERTS=1
+
+# Set server options.
+OPTIONS="-f @SERVER_ROOT@/conf/apache2.conf"
+OPTIONS="$OPTIONS $(cat @SERVER_ROOT@/conf/server-opts.txt)"
+
+# Path to the server binary, and short-form for messages.
+prog=httpd
+httpd=@APACHE2_ROOT@/bin/httpd
+pidfile=@SERVER_ROOT@/var/httpd.pid
+lockfile=@SERVER_ROOT@/var/httpd.lock
+logfile=@SERVER_ROOT@/logs/start_stop.log
+RETVAL=0
+savedpid=""
+
+# A safer approach to get the pid of httpd.  It only seaches for pids
+# based on the full path of an executable file, and returns the parent
+# process. Argument: the full path of the httpd binary
+getpidfromexec() {
+	if [ "$#" -eq 0 ]; then
+	    echo $"Usage: getpidfromexec {program}"
+	    savedpid=''
+	    return 1
+	fi
+        local awkprog="/${1//\//\\/}/ && !/awk/ {printf (\"%d\\n\",\$2)}"
+        savedpid=`ps hauxww --sort ppid | awk "$awkprog" | head -n1`
+	return 0
+}
+
+# Rewriten killproc() from /etc/rc.d/init.d/functions because it was
+# killing other httpd processes when the server had already been stopped
+killproc() {
+        RC=0; delay=3
+        # Test syntax.
+        if [ "$#" -eq 0 ]; then
+                echo $"Usage: killproc [ -d delay] {program} [signal]"
+                return 1
+        fi
+        if [ "$1" = "-d" ]; then
+                delay=$2
+                shift 2
+        fi
+
+        notset=0
+        # check for second arg to be kill level
+        if [ -n "$2" ]; then
+                killlevel=$2
+        else
+                notset=1
+                killlevel="-9"
+        fi
+
+        # Save basename.
+        base=${1##*/}
+
+        # Find pid.
+        pid=
+        if [ -f $pidfile ]; then
+                local line p
+                read line < $pidfile
+                for p in $line ; do
+                        [ -z "${p//[0-9]/}" -a -d "/proc/$p" ] && pid="$pid $p"
+                done
+        fi
+        # remove the space at the beginning of pid
+        pid=${pid#" "}
+        if [ -z "$pid" ]; then
+                getpidfromexec $1
+                pid=$savedpid
+        fi
+
+        # Kill it.
+        if [ -n "${pid:-}" ] ; then
+                [ "$BOOTUP" = "verbose" -a -z "$LSB" ] && echo -n "$base "
+                if [ "$notset" -eq "1" ] ; then
+                       if checkpid $pid 2>&1; then
+                           # TERM first, then KILL if not dead
+                           kill -TERM $pid >/dev/null 2>&1
+                           usleep 100000
+                           if checkpid $pid && sleep 1 &&
+                              checkpid $pid && sleep $delay &&
+                              checkpid $pid ; then
+                                kill -KILL $pid >/dev/null 2>&1
+                                usleep 100000
+                           fi
+                        fi
+                        checkpid $pid
+                        RC=$?
+                        [ "$RC" -eq 0 ] && failure $"$base shutdown" || success $"$base shutdown"
+                        RC=$((! $RC))
+                # use specified level only
+                else
+                        if checkpid $pid; then
+                                kill $killlevel $pid >/dev/null 2>&1
+                                RC=$?
+                                [ "$RC" -eq 0 ] && success $"$base $killlevel" || failure $"$base $killlevel"
+                        fi
+                fi
+        else
+            failure $"$base shutdown"
+            RC=1
+        fi
+
+        # Remove pid file if any.
+        if [ "$notset" = "1" ]; then
+            rm -f $pidfile
+        fi
+	savedpid=$pid
+        return $RC
+}
+
+# The semantics of these two functions differ from the way apachectl does
+# things -- attempting to start while running is a failure, and shutdown
+# when not running is also a failure.  So we just do it the way init scripts
+# are expected to behave here.
+start() {
+  echo -n $"Starting $prog: "
+  LANG=C daemon $httpd $OPTIONS
+  RETVAL=$?
+  echo
+  if [ $RETVAL = 0 ]; then
+    touch ${lockfile}
+    sleep 1 # give apache some time to fire up...
+    getpidfromexec $httpd
+    echo "$(date +'[%d/%b/%Y %H:%M:%S %z]') httpd started pid=$savedpid" >> $logfile
+  fi
+  return $RETVAL
+}
+stop() {
+  echo -n $"Stopping $prog: "
+  killproc $httpd
+  RETVAL=$?
+  echo
+  if [ $RETVAL = 0 ]; then
+    rm -f ${lockfile} ${pidfile}
+    echo "$(date +'[%d/%b/%Y %H:%M:%S %z]') httpd stopped pid=$savedpid" >> $logfile
+  fi
+}
+reload() {
+  echo -n $"Reloading $prog: "
+  if ! LANG=C $httpd $OPTIONS -t >&/dev/null; then
+    RETVAL=$?
+    echo $"not reloading due to configuration syntax error"
+    failure $"not reloading $httpd due to configuration syntax error"
+  else
+    killproc $httpd -HUP
+    RETVAL=$?
+    [ $RETVAL = 0 ] && echo "$(date +'[%d/%b/%Y %H:%M:%S %z]') httpd reloaded pid=$savedpid" >> $logfile
+  fi
+  echo
+}
+status() {
+  local base=${1##*/}
+  local pid
+
+  getpidfromexec $1
+  pid=$savedpid
+  if [ -n "$pid" ]; then
+    echo $"${base} (pid $pid) is running..."
+    return 0
+  fi
+
+  # Next try "*.pid" files
+  if [ -f $pidfile ] ; then
+    read pid < $pidfile
+    if [ -n "$pid" ]; then
+      echo $"${base} dead but pid file exists"
+      return 1
+    fi
+  fi
+
+  # See if $lockfile exists
+  if [ -f $lockfile ]; then
+    echo $"${base} dead but subsys locked"
+    return 2
+  fi
+  echo $"${base} is stopped"
+  return 3
+}
+
+  
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status $httpd
+    RETVAL=$?
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  condrestart)
+    if [ -f ${pidfile} ] ; then
+      stop
+      start
+    fi
+    ;;
+  reload)
+    reload
+    ;;
+  graceful)
+    LANG=C $httpd $OPTIONS -k $@
+    RETVAL=$?
+    if [ $RETVAL = 0 ]; then
+      getpidfromexec $httpd
+      echo "$(date +'[%d/%b/%Y %H:%M:%S %z]') httpd graceful restart pid=$savedpid" >> $logfile
+    fi
+    ;;
+  configtest)
+    LANG=C $httpd $OPTIONS -t
+    RETVAL=$?
+    ;;
+  help)
+    LANG=C $httpd $OPTIONS $@
+    RETVAL=$?
+    ;;
+  fullstatus)
+    ${LYNX-"lynx -dump"} ${STATUSURL-"http://localhost:80/server-status"}
+    ;;
+  *)
+    echo $"Usage: $prog {start|stop|restart|condrestart|reload|status|fullstatus|graceful|help|configtest}"
+    exit 1
+esac
+
+exit $RETVAL
+

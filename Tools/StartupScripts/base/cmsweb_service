@@ -1,0 +1,55 @@
+#!/bin/bash
+# description: cmsweb_service This script runs given CMS webtools-service
+# it is based on: proj_dir, ws_name, ws_ver, ws_page, ws_port, ws_base
+# which should be provided via external setup.sh
+
+RETVAL=$?
+
+if [ -n "$WEBTOOLS_BASEURL" ]; then
+    url="$WEBTOOLS_BASEURL/$ws_base"
+else
+    url="http://cmsweb.cern.ch/$ws_base"
+fi
+pid=`ps auxw | grep cmsWeb | grep -v grep | grep ${ws_port} | awk '{print $2}'`
+cmd="cmsWeb --base-url=${url} --port=${ws_port} --default-page $ws_page"
+
+start(){
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+    echo $"Start $ws_name Service on port ${ws_port}..."
+        su cmsweb -c "nohup ${cmd} 2>&1 1>& /dev/null < /dev/null &"
+}
+stop(){
+    echo $"Stop $ws_name Service on port ${ws_port}..."
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+}
+restart(){
+    echo $"Checking for existing cmsWeb app running $ws_name ..."
+        if [ ! -z ${pid} ]; then
+          echo $"Found $ws_name running on pid=${pid}, will restart"
+          kill -9 ${pid}
+        fi
+    echo $"Start $ws_name Service on port ${ws_port}..."
+        su cmsweb -c "nohup ${cmd} 2>&1 1>& /dev/null < /dev/null &"
+}
+
+case "$1" in
+    start)
+    start
+    ;;
+    stop)
+    stop
+    ;;
+    restart)
+    restart
+    ;;
+    *)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+
+exit $RETVAL

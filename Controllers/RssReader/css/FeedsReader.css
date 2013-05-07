@@ -1,0 +1,78 @@
+/* NIFTY CORNER */
+.frWidget .rtop, .rbottom {
+	display:block;
+	background-color: #fff;
+}
+.frWidget .rtop *, .rbottom *{
+	display: block; 
+	height: 1px; 
+	overflow: hidden; 
+	background-color: #3d80df;
+}
+.frWidget .r1 {
+	margin: 0 5px;
+}
+.frWidget .r2 {
+	margin: 0 3px;
+}
+.frWidget .r3 {
+	margin: 0 2px;
+}
+.frWidget .r4 {
+	margin: 0 1px; 
+	height: 2px;
+}
+
+/* SPECIFIC STYLE */
+.frWidget { 
+	width: 450px; 
+	overflow: hidden;
+}
+.frWidget .hd {
+	background-color: #3d80df; 
+	width: 450px;
+}
+
+.frWidget .frWidgetTitleContainer {
+	height: 26px;
+}
+.frWidget .frWidgetTitle {
+	width: 300px; 
+	float: left; 
+	text-align: right;
+}
+.frWidget .frWidgetSetup {
+	clear: both; 
+	font-size: 11px; 
+	border: 1px dotted #eeeeFF; 
+	padding: 5px 0px; 
+	background-color: #5b9efd;
+}
+.frWidget .frWidgetSetupForm {
+	text-decoration: none; 
+	white-space:nowrap;
+}
+.frWidget .frWidgetToggleSetup {
+	display: block; 
+	float: right; 
+	margin: 5px 15px; 
+	border: 0;
+}
+.frWidget .bd {
+	font-size: 12px;
+}
+.frWidget .feedcontainer {
+	margin-left: 20px;
+}
+.frWidget .feedcontent{
+	margin: 0px 30px; 
+	display: none; 
+	font-size: 12px; 
+	font-weight: normal;
+}
+.frWidget .feedimg{
+	border: 0; 
+	cursor: pointer; 
+	width: 11px; 
+	vertical-align: center;
+}

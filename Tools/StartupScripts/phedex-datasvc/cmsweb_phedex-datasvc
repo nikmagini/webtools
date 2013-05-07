@@ -1,0 +1,35 @@
+#!/bin/bash
+#chkconfig: 345 74 36
+#description: cmsweb_phedex-datasvc This script runs CMS Phedex Data SVC service
+
+RETVAL=$?
+
+cmd="/data/projects/phedex-datasvc/apache2-conf/bin/httpd -k"
+
+start(){
+    su cmsweb -c "nohup ${cmd} start 2>&1 1>& /dev/null < /dev/null &"
+}
+stop(){
+    su cmsweb -c "nohup ${cmd} stop 2>&1 1>& /dev/null < /dev/null &"
+}
+restart(){
+    su cmsweb -c "nohup ${cmd} graceful 2>&1 1>& /dev/null < /dev/null &"
+}
+
+case "$1" in
+    start)
+    start
+    ;;
+    stop)
+    stop
+    ;;
+    restart)
+    restart
+    ;;
+    *)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 1
+    ;;
+esac
+
+exit $RETVAL

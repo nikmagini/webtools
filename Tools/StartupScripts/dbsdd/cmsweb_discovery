@@ -1,0 +1,63 @@
+#!/bin/bash
+#chkconfig: 345 70 31
+#description: cmsweb_discovery This script runs CMS DBS Data Discovery service
+
+if [ -z ${DDHOME} ]; then
+   echo $"The DDHOME environment is not set" 2>&1 1>& /dev/null < /dev/null &
+   . /data/projects/dbs/setup.sh
+fi
+cd ${DDHOME}
+
+RETVAL=$?
+
+port=`cat DBSDD.conf | grep -i "port=" | tail -1 | sed "s/PORT=//g"`
+base=dbs_discovery
+if [ -n "$WEBTOOLS_BASEURL" ]; then
+    url="$WEBTOOLS_BASEURL/$base"
+else
+    url="http://cmsweb.cern.ch/$base"
+#    url=`cat DBSDD.conf  | grep -i "^URL=" | tail -1 | sed "s/URL=//g"`
+fi
+pid=`ps auxw | grep cmsWeb | grep -v grep | grep ${port} | awk '{print $2}'`
+cmd="cmsWeb --base-url=${url} --port=${port} --default-page /DDServer"
+
+start(){
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+	echo $"Start Data Discovery Service on port ${port}..." 
+        su cmsweb -c "nohup ${cmd} 2>&1 1>& /dev/null < /dev/null &"
+}
+stop(){
+	echo $"Stop Data Discovery Service on port ${port}..." 
+        if [ ! -z ${pid} ]; then
+          kill -9 ${pid}
+        fi
+}
+restart(){
+    echo $"Checking for existing cmsWeb app running data discovery..."
+        if [ ! -z ${pid} ]; then
+          echo $"Found data discovery running on pid=${pid}, will restart"
+          kill -9 ${pid}
+        fi
+    echo $"Start Data Discovery Service on port ${port}..."
+        su cmsweb -c "nohup ${cmd} 2>&1 1>& /dev/null < /dev/null &"
+}
+
+case "$1" in
+    start)
+    start
+    ;;
+    stop)
+    stop
+    ;;
+    restart)
+    restart
+    ;;
+    *)
+ 	echo $"Usage: $0 {start|stop|status|restart}" 
+	exit 1
+	;;
+esac
+
+exit $RETVAL

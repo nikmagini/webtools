@@ -1,0 +1,10 @@
+#!/bin/sh
+
+BASEDIR=@RPM_INSTALL_PREFIX@
+
+if [ -f $BASEDIR/etc/profile.d/dependencies-setup.sh ]
+then
+    source $BASEDIR/etc/profile.d/dependencies-setup.sh
+fi
+
+exec python -m cmsWeb ${1+"$@"}

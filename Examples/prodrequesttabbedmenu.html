@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Tabbed Menu Template - CMS Data Management</title>
+		<!-- Need a better way to handle includes../../WEBTOOLS../../WEBTOOLS -->
+
+		<script type="text/javascript" src="../../WEBTOOLS/yui/build/yahoo/yahoo.js"></script>
+		<script type="text/javascript" src="../../WEBTOOLS/yui/build/dom/dom.js"></script>
+		<script type="text/javascript" src="../../WEBTOOLS/yui/build/event/event.js"></script> 
+		<script type="text/javascript" src="../../WEBTOOLS/yui/build/container/container_core.js"></script>
+		<script type="text/javascript" src="../../WEBTOOLS/yui/build/tabview/tabview.js"></script>
+		
+		<script type="text/javascript" src="../../WEBTOOLS/Common/masthead"></script>
+		
+		<script type="text/javascript">
+			// Tell YUI that we want a tabView panel which we're calling "TabbedPanel"
+			// Need to use the same name for the div and in the style setting the size of the panel
+			YAHOO.example.init = function() {
+			    var tabView = new YAHOO.widget.TabView('TabbedPanel');
+			};
+			
+			YAHOO.example.init();
+		</script>
+		<!-- Include the next two via a script -->
+		<link rel="stylesheet" type="text/css" href="../../WEBTOOLS/Common/css/dmwt_tabs.css">
+		<link rel="stylesheet" type="text/css" href="../../WEBTOOLS/Common/css/dmwt_tabs_prodrequest.css">
+		
+		<style type="text/css">
+			/* Define the size of the tabbed panel in the page, */
+			/* the rest of the style is set in the included css file */
+			#TabbedPanel { width:30em; }
+			#TabbedPanel .yui-content { padding:1em; } /* pad content container */
+		</style>
+	</head>
+	<body onload="insertMastHead ('prodrequest');" id="content">
+	<div id="doc">
+	  <div id="TabbedPanel" class="yui-navset">
+        <ul class="yui-nav">
+            <li class="selected"><a href="#tab1"><em>Tab 1 Title</em></a></li>
+            <li><a href="#tab2"><em>Longer tab name to see what happens</em></a></li>
+            <li><a href="#tab3"><em>Tab 3 with a form</em></a></li>
+        </ul>
+        <div class="yui-content">
+
+            <div id="tab1">
+                <p>Hello worlds.</p>
+                <p>Testing 123</p>
+                <p>Testing 123</p>
+                <p>Testing 123</p>
+                
+            </div>
+            <div id="tab2">
+                <ul>
+                    <li><a href="#">Lorem ipsum dolor sit amet.</a></li>
+                    <li><a href="#">Lorem ipsum dolor sit amet.</a></li>
+
+                    <li><a href="#">Lorem ipsum dolor sit amet.</a></li>
+                    <li><a href="#">Lorem ipsum dolor sit amet.</a></li>
+                </ul>
+            </div>
+            <div id="tab3">
+                <form action="#">
+                    <fieldset>
+                        <p>Lorem Ipsum</p>
+
+                        <label for="foo"> <input id="foo" name="foo"></label>
+                        <input type="submit" value="submit">
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
+	</body>
+</html>

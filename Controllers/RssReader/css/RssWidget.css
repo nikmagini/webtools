@@ -1,0 +1,86 @@
+@import url("RssWidget_color.css");
+
+
+/* NIFTY CORNER */
+.frWidget .rtop, .rbottom{
+	display:block; 
+}
+.frWidget .rtop *, .rbottom *{
+	display: block; 
+	height: 1px; 
+	overflow: hidden; 
+}
+.frWidget .r1{
+	margin: 0 5px;
+}
+.frWidget .r2{
+	margin: 0 3px;
+}
+.frWidget .r3{
+	margin: 0 2px;
+}
+.frWidget .r4{
+	margin: 0 1px; height: 2px;
+}
+
+/* SPECIFIC STYLE */
+.frWidget { 
+	/*width: 450px;*/ 
+	overflow: hidden;
+}
+.frWidget .hd {
+	/*width: 450px;*/
+}
+.frWidget .frWidgetTitleContainer {
+	height: 1.5em;
+}
+.frWidget .frWidgetTitle {
+	width: 18em; 
+	float: left; 
+	text-align: right;
+}
+.frWidget .frWidgetSetup {
+	clear: both; 
+	font-size: 0.6em; 
+	padding: 0.5em 0; 
+}
+.frWidget .frWidgetSetupForm {
+	text-decoration: none; 
+	white-space:nowrap;
+}
+.frWidget .frWidgetToggleSetup {
+	display: block; 
+	float: right; 
+	margin: 0.3em 1.3em; 
+	border: 0;
+}
+.frWidget .bd {
+	/*font-size: 12px;*/
+}
+.frWidget .wrap {
+        /*font-size: 12px;*/
+        overflow: auto;
+}
+.frWidget .feedcontainer {
+	margin-left: 0.5em;
+	padding: 0.5em 0; 
+}
+.frWidget .feedcontent{
+	margin: 0 auto;
+	padding: 10px 0 5px 15px; 
+	display: none; 
+	font-size: 11px;
+	line-height: 12px; 
+	font-weight: normal;
+}
+.frWidget .feedimg{
+	border: 0; 
+	cursor: pointer; 
+	width: 11px; 
+	vertical-align: center;
+}
+/* Sizing */
+.rssdate{
+	font-size: 10px;
+	font-weight: normal;
+}

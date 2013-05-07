@@ -1,0 +1,7 @@
+Controllers/SecurityModule:
+
+Contains the web exposed portion of the SecurityModule. Handles
+AJAX calls from masthead, to return the information displayed 
+there, other security related pages (sign up info, for instance).
+Will need to read SecurityModule cookies, but the actual setting 
+of these will be done elsewhere (perl and Tools/SecurityModule). 

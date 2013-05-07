@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# script expects the PORT/BASE name (eg 8300/T0Mon) to be passed in
+# and to be running in $PROJ_DIR/var
+#
+
+wget -nv -t1 -T1200 http://localhost:$1/dynamic
+exitCode=$?
+if [ $exitCode -eq 0 ]; then
+    sed 's/href=\"?/href=\"dynamic?/g' dynamic > T0Mon.static.new
+    mv T0Mon.static.new T0Mon.static
+else
+    echo > T0Mon.static.new "<h1>Problem updating page, support informed.</h1>"
+    cat T0Mon.static >> T0Mon.static.new
+    mv T0Mon.static.new T0Mon.static
+    mail -s "T0Mon update error $(hostname -s):$1" gowdy@cern.ch <<EOF
+Update error!
+EOF
+fi
+
+ 
+rm -f dynamic
+rm -f T0Mon.lock

@@ -1,0 +1,16 @@
+/* NIFTY CORNER */
+.frWidget .rtop, .rbottom{
+	background-color: #fff;
+}
+.frWidget .rtop *, .rbottom *{
+	background-color: #3d80df;
+}
+
+/* SPECIFIC STYLE */
+.frWidget .hd {
+	background-color: #3d80df; 
+}
+.frWidget .frWidgetSetup {
+	border: 1px dotted #eeeeFF; 
+	background-color: #5b9efd;
+}

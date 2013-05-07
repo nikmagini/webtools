@@ -1,0 +1,15 @@
+db_schema/MySQL/delete_tables.sql
+db_schema/MySQL/filltestdb.sql
+db_schema/MySQL/secmod.sql
+db_schema/SQLite/filltestdb.sql
+db_schema/SQLite/secmod.sql
+lib/CMSWebTools/SecurityModule.pm
+lib/CMSWebTools/SecurityModule/MySQL.pm
+lib/CMSWebTools/SecurityModule/SQLite.pm
+Makefile.PL
+MANIFEST
+README
+test_html/SecurityModule.conf
+test_html/testSecMod
+utils/importHNpasswords.pl
+META.yml                                 Module meta-data (added by MakeMaker)
