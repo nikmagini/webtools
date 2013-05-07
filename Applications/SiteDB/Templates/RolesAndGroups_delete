@@ -1,0 +1,31 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea">
+			<h1>SiteDB :: Delete $type.title()</h1>
+			<p>Delete a $type here.</p>
+		</div>
+		<div>
+			<form method="post" action="$basepath/rolesandgroups/edit">
+				<input type="hidden" name="type" value="$type">
+				<input type="hidden" name="task" value="delete">
+				<table border="1" width="400">
+					<tr>
+						<td><p class="center">$type.title() name</p></td>
+						<td align="center"><p><select name="name">
+							#for i in $list
+							<option>$list[$i]['title']</option>		
+							#end for
+						</select></p></td>
+					</tr>
+					<tr>
+						<td align="center"><p>Submit entry</p></td>	
+						<td align="center"><p><input type="submit" 
+									value="Delete $type" 
+									onClick="confirm('Are you sure you want to delete this $type?')"></p></td>
+					</tr>
+				</table>
+				<p><a href="$basepath/rolesandgroups/">Back to management pages</a></p>
+			</form>			
+		</div>
+	</body>
+</html>

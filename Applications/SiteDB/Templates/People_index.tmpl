@@ -1,0 +1,72 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea"><h1>SiteDB :: Person Directory</h1>
+			<p><a href="$basepath/people/showAllEntries">Edit contacts and associations</a> - 
+			Edit your own details <a href="$basepath/people/editme?username=$token.dn">here</a>
+			#if $context.SecurityDBApi.hasRole($token.dn, "Global Admin") or $context.SecurityDBApi.hasRole($token.dn, "Site Executive")
+			- <a href="$basepath/people/addPerson">Add new person</a>
+			#end if
+			#if $context.SecurityDBApi.hasRole($token.dn, "Global Admin")
+			- <a href="$basepath/rolesandgroups/">Manage roles and groups</a>
+			#end if
+			</p>
+		</div>
+    #if $sitepersondict
+		<div class="toparea left leftborder" style="width:400px"><h3>Site Contacts</h3>
+		#set people = $sitepersondict.keys()
+    $people.sort()
+    #for p in $people
+    <p><a href="mailto:$sitepersondict[$p]['email']">$sitepersondict[$p]['name']</a> 
+    is a <i>#for r in $sitepersondict[$p]['roles']
+    "$sitepersondict[$p]['roles'][$r]" 
+    #end for
+    </i>
+    associated with 
+		#for s in $sitepersondict[p]['sites']
+    <a href="$basepath/site/index?site=$s">$sitepersondict[$p]['sites'][$s]</a> 
+    #end for
+    <br/>
+    #def personcontactinfo($persondict)
+    <blockquote>
+    #if $persondict['phone1']
+    $persondict['phone1'],
+    #end if 
+    #if $persondict['phone2']
+    $persondict['phone2'], 
+    #end if
+    #if $persondict['im_handle']
+    $persondict['im_handle']
+    #end if
+    </blockquote>
+		#end def
+		$personcontactinfo($sitepersondict[$p])
+		</p>
+		#end for
+		</div>
+		#end if
+    #if $grouppersondict
+		<div class="toparea left leftborder" style="width:400px"><h3>Group Contacts</h3>
+		#set people = $grouppersondict.keys()
+    $people.sort()
+    #for p in $people
+    <p><a href="mailto:$grouppersondict[$p]['email']">$grouppersondict[$p]['name']</a> 
+    is a <i>#for r in $grouppersondict[$p]['roles']
+    "$grouppersondict[$p]['roles'][$r]" 
+    #end for
+    </i>
+    associated with 
+		#for s in $grouppersondict[p]['groups']
+    $grouppersondict[$p]['groups'][$s] 
+    #end for
+    <br/>
+    $personcontactinfo($grouppersondict[$p])
+		</p>
+		#end for
+		</div>
+		#end if
+<!--		
+		<div class="toparea left leftborder"><h3>Other Contacts</h3></div>		
+-->
+
+	</body>
+</html>

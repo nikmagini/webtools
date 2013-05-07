@@ -1,0 +1,54 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl		 
+<style>
+ input
+{
+color: #000000;
+background: #D7D7D7;
+border: 1px solid #960000;
+padding: 4px;
+}
+ fieldset
+{
+border: 1px solid #960000;
+width: 23em;
+}
+ legend
+{
+color: #000000;
+background: #ffffff;
+border: 1px solid #960000;
+padding: 2px 6px;
+left: 15em;
+}
+</style>
+
+		<div class="toparea">
+			<h1>SiteDB :: Authentication Required!</h1>
+			<p>You need to be logged in to view this page. 
+			To log in you must be registered in either the CMS hypernews system or SiteDB. Click 
+			<a href="$basepath/Common/help/">here for help</a>.</p>
+			<p>Please log in using your Hypernews account information below.</p>
+			<form action="$basepath/SecurityModule/authenticate" method="post">
+				<input type="hidden" name="requestedPage" value="$page"/>
+				<fieldset width="200">
+					<legend>SiteDB Login</legend>
+					<table>
+						<tr>
+							<td><label for="user">Hypernews Username:</label></td>
+							<td><input id="user" name="user" type="text"/></td>
+						</tr>
+						<tr>						
+							<td><label for="password">Password:</label></td>
+							<td><input id="password" name="password" type="password"/></td>
+						</tr>
+						<tr>
+							<td colspan="2" align="center"><input id="login" type="submit" value="login"/></td>
+						</tr>
+					</table>
+				</fieldset>
+  		</form>
+  		</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,57 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<html>
+<h1>For admin eyes only</h1>
+
+#if 'cmsname' in $kwargs.keys():
+	<h2>Add $kwargs['cmsname'] to a Site</h2>
+	#set sites = $db.getDataObject(['name', 'id'], 'select name, id from site order by tier, name')
+	<form method='post' action='$basepath/admin/edit'>
+		<input type='hidden' value='$kwargs['cmsname']' name='addcmsname'/>
+		<select name='addsite'>
+			<option value='0'>Select Site</option>
+			#for n in $sites
+			<option value='$sites[$n]['id']'>$sites[$n]['name']</option>
+			#end for
+		</select><br/>
+		<input type="submit"/>
+	</form>
+	
+#else if 'sitename' in $kwargs.keys():
+	#set names = $db.getDataObject(['name', 'id'], 'select name, id from cms_name')
+	<h2>Give $kwargs['sitename'] a CMS Name</h2>
+	<form method='post' action='$basepath/admin/edit'>
+		<input type='hidden' value='$kwargs['sitename']' name='addsite'/>
+		Enter the CMS Name: <input name='newcmsname'/><br/>
+		<input type="submit"/>
+	</form>
+	
+#else
+	#if 'addcmsname' in $kwargs.keys():
+	<h2>Done some action with the following</h2>
+	<p>$args, $kwargs</p>	
+	#set insert = "insert into site_cms_name_map (cms_name_id, site_id) values ((select id from cms_name where name=:addcmsname),:addsite)"
+	#set blah = $db.editDataObject($insert, $kwargs)
+	<p>Nothing to do, <a href="$basepath/admin/">go back...</a></p>
+	
+	#else if 'addsite' in $kwargs.keys():
+	<h2>Done some action with the following</h2>
+	<p>$args, $kwargs</p>	
+	#set binds = {'newcmsname': $kwargs['newcmsname']} 
+	#set insert = ''
+	
+	#if $dbtype == 'sqlite'
+	#set insert = "insert into cms_name (name) values (:newcmsname)"
+	#else
+	#set insert = "insert into cms_name (id, name) values (cms_name_sq.nextval, :newcmsname)"
+	#end if
+	#set blah = $db.editDataObject($insert, $binds)
+	
+	#set insert = "insert into site_cms_name_map (cms_name_id, site_id) values ((select id from cms_name where name=:newcmsname),(select id from site where name = :addsite))"
+	#set blah = $db.editDataObject($insert, $kwargs)
+	<p>Nothing to do, <a href="$basepath/admin/">go back...</a></p>
+	
+	#else
+	<p>Nothing to do, <a href="$basepath/admin/">go back...</a></p>
+	#end if
+#end if
+</html>

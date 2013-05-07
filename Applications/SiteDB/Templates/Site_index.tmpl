@@ -1,0 +1,168 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--SiteDB--> 
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>SiteDB :: Site Directory</title>
+	
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/sitedb_survey.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/sitedb_sites.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/container.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/Common/mastheadcss?site=sitedb"/>
+	
+	<script type="text/javascript" src="$basepath/YUI/yui/js/?script=yahoo.js&script=dom.js&script=event.js&script=container_core.js&script=connection.js&script=dragdrop.js&script=container.js"></script>
+	<script type="text/javascript" src="$basepath/YUI/yui/js/?script=imageloader.js"></script>
+	<script type="text/javascript" src="$basepath/Common/masthead"></script>
+	<script type="text/javascript" src="$basepath/common/js/editentries.js"></script>
+	<script type="text/javascript" src="$basepath/common/js/getjsonnames.js"></script>
+	<script type="text/javascript" src="$basepath/common/js/sitestatus.js"></script>
+	
+	<script type="text/javascript">
+	function footerMenuText(){
+		return [{title: "CMS Site Directory", link: "$basepath/sitelist/", label: "Site Directory"}, 
+		{title: "Person Directory", link: "$basepath/people/", label: "Person Directory"},
+		{title: "SiteDB Reports", link: "$basepath/reports/", label: "Reports"},
+		{title: "Pledged Resources for CMS", link: "$basepath/resources/", label: "Resource Pledges"},
+		{title: "SiteDB Surveys", link: "$basepath/surveys/", label: "Surveys"}]
+	}	
+	</script>
+	</head>
+	<body onload="insertMastHead ('sitedb', 'SiteDB Navigation :: ', true);fillNamesText('$siteinfo['name']','$basepath', '$config.get("endpoint","gstat")', '$config.get("endpoint","squid")');loadMonitoring('$siteinfo['name']', '$basepath', '$config.get("endpoint", "phedex")')" id="content">	 
+		<!--Top area-->
+		<div class="toparea">
+			$toparea
+		</div>
+
+    #if $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Executive") or $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin") or $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Admin")
+		<div class="topareaedit">
+        <p><a href="#" id="show1">Edit site information</a></p>
+	  </div>
+        #end if
+		<div class="left leftborder">
+			<h3>CMS Contacts</h3>
+				<div class="box">
+					$contacts
+				#if $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Executive") or $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Admin") or $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")	
+				<p><a href="$basepath/people/showAllEntries?site=$siteinfo['id']">Edit site contacts</a></p>
+				#end if
+			</div>
+			$software
+		</div>
+		<div class="left leftborder">
+			<h3>Site Configuration</h3>
+  		<div class="box">
+    		<div id="resp2">
+					$configuration
+				</div>
+    	#if $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Executive") or $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Admin") or $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")
+        <div class="configedit"><p><a href="#" id="show2">Edit site configuration</a></p></div>
+			#end if
+			</div>
+			$associations
+		</div>
+		<div class="left leftborder">
+			<h3>Site monitoring</h3>
+        <div class="box" id="monitoring"/>
+		</div>
+	#if $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Executive") or $context.SecurityDBApi.hasSiteResponsibility($token.dn, $siteinfo['name'], "Site Admin") or $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")
+		<div id="dialog1">
+			<div class="hd"><img src="$basepath/Common/img/logomini.png"/> Edit Site Details</div>
+			<form method="get" action="$basepath/editsite/">
+				<input type="hidden" value="toparea" name="region"/>
+				<input type="hidden" value="$siteinfo['id']" name="siteid"/>
+				<table border="1" cellspacing="3">
+					<tr>
+						<td><p>Site Name:</p></td><td><p><input name="name" size="10" value="$siteinfo['name']"/></p></td>
+						<td><p>Tier of Site:</p></td><td><p>
+							<select name="tier">
+							#for t in $tiers:
+								#if $siteinfo['tier'] == $tiers[$t]['name']:
+								<option selected value="$tiers[$t]['id']">$tiers[$t]['name']</option>
+								#else
+								<option value="$tiers[t]['id']">$tiers[$t]['name']</option>
+								#end if
+							#end for	
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td><p>Site is located in:</p></td><td><p><input name="country" size="10" value="$siteinfo['country']"/></p></td>
+						<td><p>Grid Middleware:</p></td><td><p>
+							<select name="usage">
+								#if $siteinfo['usage'] == 'OSG':
+								<option value="LCG">LCG</option>
+								<option selected value="OSG">OSG</option>
+								<option value="ARC">ARC</option>
+								#elif $siteinfo['usage'] == 'LCG':
+								<option selected value="LCG">LCG</option>
+								<option value="OSG">OSG</option>
+								<option value="ARC">ARC</option>
+								#elif $siteinfo['usage'] == 'ARC':
+								<option value="LCG">LCG</option>
+								<option value="OSG">OSG</option>
+								<option selected value="ARC">ARC</option>>
+								#else:
+								<option selected>Unknown, please change</option>
+								<option value="LCG">LCG</option>
+								<option value="OSG">OSG</option>
+								<option value="ARC">ARC</option>
+								#end if
+							</select>
+						</p></td>
+					</tr>
+					<tr>
+						<td width="180"><p>Site Homepage:</p></td><td colspan="3"><p><input name="url" size="45" value="$siteinfo['url']"/></p></td>
+					</tr>
+					<tr>
+						<td width="180"><p>URL of Site Logo:</p></td><td colspan="3"><p><p><input name="logo" size="45" value="$siteinfo['logo']"/></p></p></td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<div id="dialog2">
+			<div class="hd"><img src="$basepath/Common/img/logomini.png"/> Edit Site Configuration</div>
+			<form method="get" action="$basepath/editsite/">
+				<input type="hidden" value="config" name="region"/>
+				<input type="hidden" value="$siteinfo['id']" name="siteid"/>
+				<table border="1" cellspacing="3">
+					<tr>		
+						<td width="90"><p>CE(s) FQDN(s):<br/><span class="small">comma separated</span></p></td>
+						<td colspan="2" width="180"><p><input name="ce" size="30" value="$resources['CE']"/></p></td>
+						<td width="90"><p>Select Primary CE:</p></td>
+						<td colspan="2" width="180" align="center"><p>dropdown box</p></td>
+					</tr>
+					<tr>		
+						<td width="90"><p>SE(s) FQDN(s):<br/><span class="small">comma separated</span></p></td>
+						<td colspan="2" width="180"><p><input name="se" size="30" value="$resources['SE']"/></p></td>
+						<td width="90"><p>Select Primary SE:</p></td>
+						<td colspan="2" width="180" align="center"><p>dropdown box</p></td>
+					</tr>
+					</tr>
+					<tr>
+						<td width="90"><p><a href="https://goc.grid-support.ac.uk/gridsite/gocdb2/index.php">GOCDB</a> ID:</p></td>
+						<td width="90"><p><input name="gocdbid" size="4" value="$siteinfo['gocid']"/></p></td>
+						<td width="90"><p>Install development CMSSW releases?:</p></td>
+						<td width="90" align="center">
+						#if $siteinfo['devel'] == 'y':
+							<p><input type="checkbox" name="devel" value="y" checked="checked"/></p>
+						#else
+							<p><input type="checkbox" name="devel" value="y"/></p>
+						#end if
+						</td>
+						<td width="90"><p>Site installs software manually?:</p></td>
+						<td width="90" align="center">
+						#if $siteinfo['manual'] == 'y':
+							<p><input type="checkbox" name="manual" value="y" checked="checked"/></p>
+						#else
+							<p><input type="checkbox" name="manual" value="y"/></p>
+						#end if
+						</td>
+					</tr>			
+				</table>
+			</form>
+		</div>
+		#end if
+	</body>
+</html>		

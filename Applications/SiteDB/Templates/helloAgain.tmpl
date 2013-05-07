@@ -1,0 +1,24 @@
+<html>
+<body>
+<h1>$helloString</h1>
+
+<p>$dict</p>
+<p>$dict['thing2']</p>
+<p>$dict['thing1'].name</p>
+<p>$select</p>
+
+#for x in $fields
+<p>$x</p>
+#end for
+
+#for d in $data:
+<p>
+#for f in $fields:
+$f: $d
+#end for
+</p>
+#end for
+<p><a href="helloAgain">Hello</a></p>
+<p><a href="securityTest">Hello securely</a></p>
+</body>
+</html>

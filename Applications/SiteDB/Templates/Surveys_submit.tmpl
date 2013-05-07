@@ -1,0 +1,23 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<div class="toparea">
+			<h1>SiteDB :: Add question to $name survey</h1>
+			<p>Your survey is completed and has been sent to the people you requested. 
+			You can view the responses to your survey on the 
+			<a href="$basepath/surveys/viewresults?id=$id">results page</a></p>
+			#if $warning != "None"
+			<p style="color:red; font-weight:bold">$warning</p>
+			#end if
+		</div>
+		<div class="right leftborder" style="width: 300px">
+			#set size = len($survey.getQuestionList($id))
+			<p>Survey $name has $size questions</p>
+			<code style="color:grey">
+			#for q in $survey.getQuestionList($id)
+$q ...<br/>
+			#end for
+			</code>
+		</div>		
+ 	</body>
+</html>

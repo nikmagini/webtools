@@ -1,0 +1,16 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<div class="toparea"><h1>SiteDB :: XML API</h1>
+	    <p>SiteDB presents some of it's data in XML format for other applications to use. 
+	    These API's are in development. Please contact the developers if you begin to use 
+	    them, so that we can track their use and ensure required functionality is maintained</p>
+	    #for m in $methods
+	    <h6>$m.keys[0]</h6>
+	    #for c in $m.values[0]
+	    <p><a href="$basepath/xml/$m.keys[0]?$c">$c</a></p>
+	    #end for
+	    #end for
+		</div>
+ 	</body>
+</html>

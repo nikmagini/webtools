@@ -1,0 +1,46 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<!-- Edit 8th April -->
+		<div class="toparea">
+			<h1>SiteDB :: Remove Site from Directory</h1>
+#if $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")
+			<p>Use this page with <b>extreme</b> caution, there is currently no confirmation step as it's not expected to be used much.</p>
+			<form method="GET" action="$basepath/editsite/">
+				<input type="hidden" value="delsite" name="region"/>
+				<select name="siteid">
+					<option>Select site to delete</option> 
+				#if $sitelist['tier0']
+				#for s in $sitelist['tier0']
+					<option value="$s['id']">$s['name']</option>
+				#end for
+				#end if
+				#if $sitelist['tier1']
+				#for s in $sitelist['tier1']
+					<option value="$s['id']">$s['name']</option>
+				#end for
+				#end if
+				#if $sitelist['tier2']
+				#for s in $sitelist['tier2']
+					<option value="$s['id']">$s['name']</option>
+				#end for
+				#end if			
+				#if $sitelist['tier3']
+				#for s in $sitelist['tier3']
+					<option value="$s['id']">$s['name']</option>
+				#end for
+				#end if
+				#if $sitelist['tier3']
+				#for s in $sitelist['tier4']
+					<option value="$s['id']">$s['name']</option>
+				#end for
+				#end if
+				</select>
+				<input type="submit" value="Delete site"/>
+			</form>
+#else 
+			<p>You do not have permission to delete a site. Please <a href="https://savannah.cern.ch/support/?func=additem&group=cmscompinfrasup&category_id=107&severity=9&assigned_to=2964">contact Data Operations</a>.</p>
+#end if			
+		</div>
+	</body>
+</html>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<SiteDB>
+#if $results
+	#for r in $results
+		#for i in $results[$r]
+		<$i.replace(' ', '_').replace('#', '')>$results[$r][$i]</$i.replace(' ', '_').replace('#', '')>
+		#end for
+	#end for
+#else
+	<error>No data object given to template</error>
+#end if
+</SiteDB>

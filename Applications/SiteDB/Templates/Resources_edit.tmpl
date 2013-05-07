@@ -1,0 +1,51 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea">
+			<h1>SiteDB :: $resources.name Resource Pledge</h1>
+			<p><a href="$basepath/resources/?site=$resources.id">View pledge</a> - <a href="$basepath/site/?site=$resources.id">View site information</a></p>
+		</div>
+		<div class="left leftborder">
+			<form method="get" action="$basepath/resources/edit">
+				<input type="hidden" value="$resources.id" name="siteid"/>
+				<table>
+					<tr>
+						<td><p><b>Pledge for</b></p></td>
+						<td>
+							<select name="quarter">
+							#for k in 1, 2, 3, 4
+							#if $k == int($quarter)
+							<option value="$k" selected>Quarter $k</option>
+							#else
+							<option value="$k">Quarter $k</option>
+							#end if
+							#end for
+							</select>
+							<select name="year">
+							#for k in xrange(2007,2021,1)
+							#if $k == int($year)
+							<option value="$k" selected>$k</option>
+							#else
+							<option value="$k">$k</option>
+							#end if
+							#end for
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2"><hr/></td>
+					</tr>				
+					#for k in ('cpu - kSI2k', 'job_slots - #',  'disk_store - TB', 'tape_store - TB',  'local_store - TB', 'wan_store - TB', 'national_bandwidth - Gbps', 'opn_bandwidth - Gbps')
+					<tr>			
+						#set res = $k.replace('_', ' ').split(' - ')[0].title()
+						#set unit	= $k.split(' - ')[1]	
+						<td><p><b>$res</b> - ($unit)</p></td>
+						#set key = $k.split()[0]
+						<td><p><input value="$resources.pledge[$k]" name="$key" style="text-align:right;"/></p></td>
+					</tr>
+					#end for
+				</table>
+				<input type="submit" value="Edit this pledge">
+			</form>
+		</div>
+	</body>
+</html>

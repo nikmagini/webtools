@@ -1,0 +1,117 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+#from datetime import date
+#set now = date.today()
+#if $showquarter
+	#set pledgequarter = "Quarter " + $quarter + ", " + $year
+#else
+	#set pledgequarter = "current"
+#end if
+		<div class="toparea">
+		#if $resources.id == 0
+			<h1>SiteDB :: Global Resource Pledge</h1>
+			<p>Below is the $pledgequarter global resource pledge for all sites assoicated with CMS.</p>
+		#else
+			<h1>SiteDB :: $resources.name Resource Pledge</h1>
+			<p>Below is the $pledgequarter resource pledge for <a href="$basepath/site/?site=$resources.id">$resources.name</a>. To edit the pledged resource click <a href="$basepath/resources/edit?site=$resources.id&quarter=$quarter&year=$year">here</a>.</p>
+		#end if
+		</div>
+		<div class="left leftborder">
+			<table width="350">
+				<form  method="get" action="$basepath/resources/">
+			  <tr>
+					<td><p><b>View pledge for</b></p></td>
+					<td align="right">
+						<input type="hidden" value="true" name="showquarter"/>
+						<input type="hidden" value="$resources.id" name="site"/>
+						<select name="quarter">
+							<!-- $quarter -->
+						#for k in 1, 2, 3, 4
+							#if $k == int($quarter)
+							<option value="$k" selected>Quarter $k</option>
+							#else
+							<option value="$k">Quarter $k</option>
+							#end if
+						#end for
+						</select>
+						<select name="year">
+						#for k in xrange(2007,2021,1)
+							#if $k == int($year)
+							<option value="$k" selected>$k</option>
+							#else
+							<option value="$k">$k</option>
+							#end if
+						#end for
+						</select>
+						<input type="submit" value="Go"/>
+					</td>
+				</tr>
+				</form>
+				<tr>
+					<td colspan="2"><hr/></td>
+				</tr>	
+				<tr>
+					<td colspan="2" style="background: rgb(215, 215, 215);"><h5>Compute</h5><p class="indent small"><i>Total processing power available to CMS.</i></p></td>
+				</tr>
+				#for k in ('cpu - kSI2k', 'job_slots - #')
+				<tr>	
+					#set res = $k.replace('_', ' ').split(' - ')[0].title()
+					#set unit	= $k.split(' - ')[1]	
+					<td><p><b>$res</b></p></td><td><p>$resources.pledge[$k] ($unit)</p></td>
+				</tr>
+				#end for
+				<tr>
+					<td colspan="2" style="background: rgb(215, 215, 215);"><h5>Storage</h5> <p class="indent small"><i>Total storage allocated to CMS.</i></p></td>
+				</tr>
+				#for k in ('disk_store - TB', 'tape_store - TB')
+				<tr>	
+					#set res = $k.replace('_', ' ').split(' - ')[0].title()
+					#set unit	= $k.split(' - ')[1]	
+					<td><p><b>$res</b></p></td><td><p>$resources.pledge[$k] ($unit)</p></td>
+				</tr>
+				#end for
+				<tr>
+					<td colspan="2" style="background: rgb(215, 215, 215);"><p class="indent small"><i>Storage available for local users, and available for transfer (e.g. via PhEDEx).</i></p></td>
+				</tr>
+				#for k in ('local_store - TB', 'wan_store - TB')
+				<tr>	
+					#set res = $k.replace('_', ' ').split(' - ')[0].title()
+					#set unit	= $k.split(' - ')[1]	
+					<td><p><b>$res</b></p></td><td><p>$resources.pledge[$k] ($unit)</p></td>
+				</tr>
+				#end for
+				<tr>
+					<td colspan="2" style="background: rgb(215, 215, 215);"><h5>Network</h5><p class="indent small"><i>Expected national and international bandwidth.</i></p></td>
+				</tr>
+				<tr>	
+					<td><p><b>NREN connection speed</b></p></td><td><p>$resources.pledge['national_bandwidth - Gbps'] (Gbps)</p></td>
+				</tr>
+				<tr>	
+					<td><p><b>OPN connection speed</b></p></td><td><p>$resources.pledge['opn_bandwidth - Gbps'] (Gbps)</p></td>
+				</tr>
+			</table>
+		</div>
+		#if $resources.id == 0
+#def printsitelist($tier, $tiertitle)
+	#set $basepath = $context.CmdLineArgs.opts.baseUrl
+	#if len($sitelist[$tier])
+		<h5>$tiertitle centres</h5>
+		#for s in $sitelist[$tier]
+		<p class="closer"><a href="$basepath/resources/?site=$s['id']&quarter=$quarter&year=$year">$s['name']</a></p></td>
+		#end for
+	#end if
+#end def	
+		<div class="left leftborder">
+		$printsitelist('tier0', 'Tier 0')
+		$printsitelist('tier1', 'Tier 1')
+		</div>
+		<div class="left leftborder">
+		$printsitelist('tier2', 'Tier 2')
+		</div>
+		<div class="left leftborder">
+		$printsitelist('tier3', 'Tier 3')
+		$printsitelist('tier4', 'Tier 4/Opportunistic')	
+		</div>
+		#end if
+	</body>
+</html>

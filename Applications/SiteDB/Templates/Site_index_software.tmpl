@@ -1,0 +1,62 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<h3>Software installed on $siteinfo['name']</h3>
+	<div id="software" class="box">
+#if len($software.keys) == 0
+    <p>No CE registerred, please <a href="#" id="show1">update the site</a>.</p>
+#end if
+	<p>The following is the software installed according to the SAM tests. Please check the results of the test if the list is blank - this means you may have a problem at your site.</p>
+#if $siteinfo['devel'] == 'y'
+    <p class="small">Site has development releases installed.</p>
+#end if
+#if $siteinfo['manual'] == 'y'
+    <p class="small">Site installs software manually.</p>
+#end if
+<hr width="80%"/>
+<form method="get" action="$basepath/editsite/">
+<input type="hidden"  name="region" value="installs"/>
+<input type="hidden" name="site" value="$siteinfo['id']"/>
+#for ce in $software.keys
+	#set endpoint = "https://lcg-sam.cern.ch:8443/sam/sam.py?funct=TestResultLatest&nodename=" + $ce + "&vo=cms&testname=CE-cms-swinst"
+	<p class="small">Test results for <a href="$endpoint">$ce</a></p>
+	#if len($software) >0
+		<p class="small">$ce</p>
+		#if len ($software[$ce]) > 0:
+			#for arch in $software[$ce].keys
+		<p class="small">$arch</p>
+			<ol class="CMSSW-list" id="">
+			#if len ($software[$ce][$arch]) > 0:
+				#for release in $software[$ce][$arch]
+					#try
+						$pins[$ce][$arch].remove($release)
+				<li>$release <input type="checkbox" name="pinned" value="release:$release;arch:$arch;ce:$ce" checked="checked"></li>
+					#except
+				<li>$release <input type="checkbox" name="pinned" value="release:$release;arch:$arch;ce:$ce"></li>
+					#end try
+				#end for
+			#else
+				<li>No release for $arch available. Check the <a href="$endpoint">SAM test</a> results.</li>
+			#end if
+			</ol>
+			#try
+				#if len($pins[$ce][$arch]) > 0
+			<p>The following software is pinned on the CE, but is currenty unavailable</p>
+					#for release in $pins[$ce][$arch]
+			<p style="color:#ff1010;font-weight: bold;">$arch.$release</p>
+					#end for
+				#end if
+			#except
+			<p class="small">No software pinned on $ce for $arch.</p>
+			#end try
+			#end for
+			<br/>
+		#else
+		<p class="small">No centrally installed CMSSW releases available on $ce recorded by <a href="$endpoint">SAM tests</a>.</p>
+		#end if
+	#else
+		<p class="small">Error getting software list for $ce.</p>
+	#end if 
+#end for
+			<center><input type="submit" value="Update software pins"></center>
+		</form>
+		<br/>
+	</div>

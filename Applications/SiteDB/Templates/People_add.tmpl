@@ -1,0 +1,52 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<!-- 'data':data, 'fields':fields, 'admin':self.admin -->
+		<div class="toparea"><h1>SiteDB :: Create new entry in the Person Directory</h1></div>
+
+<form method="get" action="$basepath/editsite/">
+	<input type="hidden" value="addperson" name="region"/>
+	<table border="1" width="800">
+		<tr>
+			<td><p class="center">Forename</p></td>
+			<td><p class="center">Surname</p></td>
+			<td><p class="center">Email</p></td>
+			<td><p class="center">DN</p></td>
+			<td><p class="center">Phone 1</p></td>
+			<td><p class="center">Phone 2</p></td>
+		</tr>
+		<tr>
+			<td><p><input name="forename" size="15" value="Forename"/></p></td>
+			<td><p><input name="surname" size="15" value="Surname"/></p></td>
+			<td><p><input name="email" size="15" value="email@site.net"/></p></td>
+			<td><p><input name="dn" size="15" value="your dn"/></p></td>	
+			<td><p><input name="phone1" size="15" value="01234"/></p></td>	
+			<td><p><input name="phone2" size="15" value="56789"/></p></td>
+		</tr>
+		<tr>
+			<td colspan="6" align="right"><p>Submit entry</p></td>	
+			<td><p><input type="submit" value="Add new contact"></p></td>
+		</tr>
+	</table>
+	<br/>
+#if $site > 0
+	<table border="1" width="800">
+		<tr>
+	#for r in $roles:
+			<td align="center"><p>$roles[$r]['title']</p></td>	
+	#end for
+		</tr>
+		<tr>
+	#for r in $roles:
+	#set $sep = $site + '_' + str($roles[$r]['id'])
+	
+			<td align="center"><input type="checkbox" name="siteassoc" value="$sep"/></td>	
+	#end for
+		</tr>		
+	</table>			
+
+
+#end if
+</form>
+
+	</body>
+</html>

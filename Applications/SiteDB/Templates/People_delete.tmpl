@@ -1,0 +1,14 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea">
+			<h1>SiteDB :: Delete Person</h1>
+			<h4>Are you sure you want to delete the following entry?</h4>
+		</div>
+		<form method="get" action="$basepath/editsite/" enctype="multipart/form-data">
+			<input type="hidden" value="deleteperson" name="region"/>
+			<input type="hidden" value="$id" name="pid"/>
+			$entrylist
+			<input type="submit" value="Delete Contact">
+		</form>
+	</body>
+</html>

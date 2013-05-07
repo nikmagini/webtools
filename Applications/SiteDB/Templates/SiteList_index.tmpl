@@ -1,0 +1,106 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--SiteDB--> 
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>SiteDB :: Site Directory</title>
+	
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/sitedb_survey.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/sitedb_sites.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/container.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/Common/mastheadcss?site=sitedb"/>
+	
+	<script type="text/javascript" src="$basepath/YUI/yui/js/?script=yahoo.js&script=dom.js&script=event.js&script=container_core.js&script=connection.js&script=dragdrop.js&script=container.js"></script>
+	<script type="text/javascript" src="$basepath/Common/masthead"></script>
+	<script type="text/javascript" src="$basepath/common/js/sitestatus.js"></script>
+	
+	<script type="text/javascript">
+	function footerMenuText(){
+		return [{title: "CMS Site Directory", link: "$basepath/sitelist/", label: "Site Directory"}, 
+		{title: "Person Directory", link: "$basepath/people/", label: "Person Directory"},
+		{title: "SiteDB Reports", link: "$basepath/reports/", label: "Reports"},
+		{title: "Pledged Resources for CMS", link: "$basepath/resources/", label: "Resource Pledges"},
+		{title: "SiteDB Surveys", link: "$basepath/surveys/", label: "Surveys"}]
+	}	
+	</script>
+	</head>
+	<body onload="insertMastHead ('sitedb', 'SiteDB Navigation :: ', true);" id="content">
+
+		<div class="toparea">
+			<h1>SiteDB :: Site Directory</h1>
+			<p>Below are all the sites known to the CMS SiteDB, shown by the $names[$scheme]. If your site is not listed <a href="https://savannah.cern.ch/support/?func=additem&group=cmscompinfrasup&category_id=107&severity=9&assigned_to=2964">contact Data Operations</a>.</p>
+			<p class="small" style="clear:left;">
+			<form action = "" method="get">
+				<select name="naming_scheme">
+					<option>Show sites by:</option>
+					#for n in $order
+					<option value="$n">$names[$n]</option>
+					#end for
+				</select>
+				<input type="submit" value="go"/>
+			</form>
+		</p>
+		</div>
+#def printsitelist($tier, $tiertitle)
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+
+		#if len($sitelist[$tier])
+		<div class="left leftborder">
+			<h5>$tiertitle centres</h5>
+			#set $maxcell = 15
+			#if len($sitelist[$tier]) > $maxcell
+				#set $cols = 2
+			#else
+				#set $cols = 1
+			#end if
+			<table cellpadding="0" cellspacing="0">
+			#set $count = 0
+			#for s in $sitelist[$tier]
+				#if $count == 0
+				<tr>
+				#end if
+					#set $count = $count + 1
+					<!-- Change colour of flag for sites with problems in SAM -->
+					<td><p class="closer"><img src="$basepath/common/images/help.png" id="flag_$s['id']" alt="Loading Status"/><a href="$basepath/site/index?site=$s['id']">$s['name']</a></p></td>
+				#if $count == $cols
+				</tr>
+					#set $count = 0
+				#end if
+			#end for
+			</table>
+		</div>
+		#end if
+#end def	
+		$printsitelist('tier0', 'Tier 0')
+		$printsitelist('tier1', 'Tier 1')
+		$printsitelist('tier2', 'Tier 2')
+		$printsitelist('tier3', 'Tier 3')
+		$printsitelist('tier4', 'Tier 4/Opportunistic')
+
+		<div class="left"><h5>Key to icons</h5>
+			<p><img src="$basepath/common/images/flag_green.png"/> : Site is passing all SAM tests.</p>
+			<p><img src="$basepath/common/images/control_pause.png"/> : Site is in maintenance.</p>
+			<p><img src="$basepath/common/images/error.png"/> : Site has one or more SAM tests in warning.</p>
+			<p><img src="$basepath/common/images/exclamation.png"/> : Site has one or more SAM tests failing.</p>
+			<p><img src="$basepath/common/images/help.png"/> : Site status is loading, no SAM tests are run at the site or the site doesn't have any registerred CE/SE.</p>
+		</div>
+#if $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")
+		<p style="clear:left;"><a href="$basepath/sitelist/addNewSite">Add a new site</a> - <a href="$basepath/sitelist/deleteSite">Delete a site</a></p>
+#end if
+		<script type="text/javascript">
+		var imgArray=new Array();
+		#set i = 0
+		#for t in $sitelist
+			#for s in $sitelist[$t]
+				imgArray[$i] = $s['id']
+				#set $i = $i + 1
+			#end for
+		#end for
+		for (s in imgArray) {
+			StatusUpdate([s], "$basepath")
+		}
+		</script> 
+	</body>
+</html>

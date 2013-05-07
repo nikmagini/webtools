@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<sites>
+#if $cmssitelist
+#for c in $cmssitelist
+	<cmssite name="$c">
+	<!-- Should be replaced by the real site name -->
+		<site name="$c">
+		#for ce in $cmssitelist[$c]['celist']
+			<ce name="$ce"/>
+		#end for
+		#for se in $cmssitelist[$c]['selist']
+			<se name="$se"/>
+		#end for
+		#for p in $cmssitelist[$c]['p_list']
+			<phedex_node name="$p"/>
+		#end for
+		</site>
+	</cmssite>
+#end for
+#else if $celist
+#for c in $celist
+	<ce name="$c">
+	#for site in $celist[$c]['cmslist']
+		<cmssite name="$site"/>
+		<site name="$site"/>
+	#end for
+	#for se in $celist[$c]['selist']
+		<se name="$se"/>
+	#end for
+	#for p in $celist[$c]['p_list']
+		<phedex_node name="$p"/>
+	#end for
+	</ce>
+#end for
+#else if $selist
+#for c in $selist
+	<se name="$c">
+	#for site in $selist[$c]['cmslist']
+		<cmssite name="$site"/>
+		<site name="$site"/>
+	#end for
+	#for ce in $selist[$c]['celist']
+		<ce name="$ce"/>
+	#end for
+	#for p in $selist[$c]['p_list']
+		<phedex_node name="$p"/>
+	#end for
+	</se>
+#end for	
+#else if $phedexlist
+#for p in $phedexlist
+	<phedex_node name="$p">
+	#for site in $phedexlist[$p]['cmslist']
+		<cmssite name="$site"/>
+		<site name="$site"/>
+	#end for
+	#for ce in $phedexlist[$p]['celist']
+		<ce name="$ce"/>
+	#end for
+	#for se in $phedexlist[$p]['selist']
+		<se name="$se"/>
+	#end for
+	</phedex_node>
+#end for
+#else
+	<error>No data object given to template</error>
+#end if
+</sites>

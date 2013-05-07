@@ -1,0 +1,22 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl		 
+	<div class="toparea" id="resp1">
+		#if $siteinfo['logo']
+		#if $siteinfo['logo'].startswith('http'):
+		<div style="float:right;">
+	 		<a href="$siteinfo['url']"><img border="0" height="72" src="$siteinfo['logo']"/></a>
+		</div>
+	 	#end if
+	 	#end if
+		<h1><h1>$siteinfo['name'] :: Site Details</h1></h1>
+		<p style="color:grey"><b>Status</b>:<img src="$basepath/common/images/help.png" id="flag_$siteid" alt="Loading Status"/><span id="CMS_NAME_text">CMS Name</span> : <span id="SAM_NAME_text">SAM Name<span></p>
+		<p><a href="$siteinfo['url']">$siteinfo['name']</a> is a $siteinfo['tier'] site based in $siteinfo['country']. It runs the $siteinfo['usage'] grid middleware. If you have a problem using $siteinfo['name'] please open a ticket in the <a href="https://savannah.cern.ch/support/?func=additem&group=cmscompinfrasup&category_id=108&severity=9&assigned_to=3534&summary=Problem%20with%20$siteinfo['name']">Facilities Operations savannah</a></p> 
+		<p>To view the pledged resources for $siteinfo['name'] click <a href="$basepath/resources/?site=$siteinfo['id']">here</a>.</p>
+	</div> 
+	<div class="topareaedit">
+  	<p><a href="#" id="show1">Edit site information</a></p>
+  </div>
+	<script type="text/javascript">
+		var imgArray=new Array();
+		imgArray[0] = $siteid
+		StatusUpdate(imgArray, "$basepath")
+	</script> 

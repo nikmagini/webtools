@@ -1,0 +1,61 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<div class="toparea">
+			<h1>SiteDB :: Add question to $name survey</h1>
+			<p>On this page you can add a question to the survey you are creating.</p>
+			#if $warning != "None"
+			<p style="color:red; font-weight:bold">$warning</p>
+			#end if
+		</div>
+		<div class="left leftborder">
+			<form action="$basepath/surveys/createsurvey" method="get">
+				<input type="hidden" name="id" value="$id"/>
+				<input type="hidden" name="name" value="$name"/>
+				<table>
+					<tr>
+						<td valign="top">
+							<p>Question:</p>
+						</td>
+						<td>
+							<textarea name="question" rows="5" cols="30">Type your question here</textarea>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top">
+							<p>Response type:</p>
+ 						</td>
+						<td>
+							<select name="response_type">
+							#for l in 'Text', 'Yes/No'###, 'Option List'
+								<option value="$l">$l</option>
+							#end for
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" colspan="2">
+							<div class="toparea">&nbsp;</div>
+						</td>
+					</tr>
+					<tr>
+						<td valign="top" align="center" colspan="2">						
+							<input type="submit" name="action" value="Add another question"/>
+							<input type="submit" name="action" value="Submit Survey"/>
+							<input type="reset"/>
+						</td>
+					</tr>
+				</table>			
+			</form>
+		</div>
+		<div class="right leftborder" style="width: 300px">
+			#set size = len($survey.getQuestionList($id))
+			<p>Survey $name has $size questions</p>
+			<code style="color:grey">
+			#for q in $survey.getQuestionList($id)
+$q ...<br/>
+			#end for
+			</code>
+		</div>		
+ 	</body>
+</html>			

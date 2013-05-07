@@ -1,0 +1,42 @@
+@CHARSET "UTF-8";
+.questionpane{
+	background:rgb(215, 215, 215);
+	text-align:left;
+}
+.smallpanes{
+	background:rgb(255, 255, 255);
+	margin-left: auto;
+	margin-right: auto;
+	text-align:left;
+}
+fieldset{
+	vertical-align:top;
+	font-size: 12px; 
+	line-height: 18px;
+	font-family: arial; 
+	color: rgb(0, 0, 0);
+	margin: 10px; 
+	padding:5px; 
+	border:solid rgb(190, 190, 190) 1px;
+} 
+.small{
+	font-size: 10px; 
+	font-family: 'Lucida Grande', verdana, helvetica, arial, sans-serif;
+}
+legend{
+	font-size: 11px;
+	font-weight:bold; 
+	margin: 1px; 
+	padding:1px; 
+	padding-left:5px;
+	padding-right:5px;
+	background:rgb(255, 255, 255);	
+	border:solid rgb(200, 200, 200) 1px;
+}
+input{
+	font-size: 11px; 
+	font-family: arial; 
+	color: rgb(0, 0, 0);
+	padding:0px;
+	margin: 0px;
+}

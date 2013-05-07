@@ -1,0 +1,93 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea"><h1>SiteDB :: Edit Person</h1></div>
+		<form method="get" action="$basepath/editsite/">
+			<div>
+				<input type="hidden" value="editperson" name="region"/>
+				<input type="hidden" name="id" value="$persondata['id']"/>
+				<input type="hidden" name="singlesite" value="$singlesite"/>
+					<!-- contact information -->
+					<table border="1" width="800">
+						<tr>
+							<td><p class="center">Surname</p></td>
+							<td><p class="center">Forename</p></td>
+							<td><p class="center">Distinguished Name</p></td>
+							<td><p class="center">Username</p></td>
+						</tr>
+						<tr>
+							#for f in "surname", "forename", "dn", "username"
+							<td><p><input name="$f" size="25" value="$persondata[$f]"/></p></td>
+							#end for
+						</tr>
+						<tr>							
+							<td><p class="center">Email</p></td>
+							<td><p class="center">Primary Phone</p></td>
+							<td><p class="center">Secondary Phone</p></td>
+							<td><p class="center">Global Admin</p></td>
+						</tr>			
+						<tr>
+							#for f in "email", "phone1", "phone2"
+							<td><p><input name="$f" size="25" value="$persondata[$f]"/></p></td>
+							#end for
+							#set check=''
+							#if len($assocdata) != 0:
+							#for a in $assocdata
+					                #if 'Global Admin' in $assocdata[a]['role']:
+   					                #set check=' checked="checked"'
+					                #end if
+						        #end for
+							#end if
+						        <td align="center"><input type="checkbox" name="globaladmin" value="true"$check/></td>
+						</tr>		
+					</table>	
+					<br/>
+					<input type="submit" value="Edit these details"/>
+					<br/>
+					<!-- site/role infomation -->
+					#for t in 0, 1, 2, 3
+					<a name="Tier_$t"/>
+          <table border="1" width="800">
+            <tr>
+              <td><p>Site Name</p></td>
+              #for r in $roledata
+              <td><p>$roledata[r]['title']</p></td>
+              #end for
+            </tr>
+            #set count = 0
+            #for s in $sitedata
+            #if int($sitedata[s]['tier'].split()[-1]) == $t
+            <tr>  
+              <td><p><b>$sitedata[s]['name']</b></p></td>
+              #set val = ''
+              #set check = ''
+              #for r in $roledata
+              #set check = ''
+              #if len($assocdata) != 0
+              #for a in $assocdata:
+              #if $assocdata[a]['sid'] == $sitedata[s]['id'] and $assocdata[a]['role'] == $roledata[r]['title']:
+              #set check = ' checked="checked"'
+              #end if
+              #end for
+              #end if
+              #set val = str($sitedata[$s]['id']) + "_" + str($roledata[$r]['id'])
+              <td align="center"><input type="checkbox" name="siteassoc" value="$val"$check/></td>
+              #end for
+            </tr>
+            #set count += 1
+            #end if
+            #end for
+            #if count == 0
+            <tr>  
+            	#set rolesize = len($roledata) + 1
+              <td colspan = "$rolesize"><p align="center"><b>No tier $t sites</b></p></td>
+            </tr>
+            #else
+            #set count = 0
+            #end if
+          </table>
+          <p><a href="#Tier_0">Tier 0</a> :: <a href="#Tier_1">Tier 1</a> :: <a href="#Tier_2">Tier 2</a> :: <a href="#Tier_3">Tier 3</a> :: <input type="submit" value="Edit these details"/></p>
+					#end for
+			<div>
+		</form>
+	</body>
+</html>

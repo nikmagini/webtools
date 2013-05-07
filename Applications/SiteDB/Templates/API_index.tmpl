@@ -1,0 +1,18 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<div class="toparea"><h1>SiteDB :: $type API</h1>
+	    <p>SiteDB presents some of it's data in $type format for other applications to use. 
+	    These API's are in development. Please contact the developers if you begin to use 
+	    them, so that we can track their use and ensure required functionality is maintained</p>
+			#set keys = $methods.keys()
+	    $keys.sort()
+	    #for m in $keys
+	    <h6>$m</h6>
+	    #for c in $methods[$m]['args']
+	    <p><a href="$basepath/$type.lower()/index/$m?$c">$c</a></p>
+	    #end for
+	    #end for
+		</div>
+ 	</body>
+</html>

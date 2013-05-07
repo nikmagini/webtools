@@ -1,0 +1,12 @@
+This python application is built using python 2.4, cherrypy 2.2.1 and pysqlite 2.2.2. You'll need them (or equivalent) before you run it. 
+I found all were available as native builds for Intel Mac
+
+http://www.python.org/
+http://www.cherrypy.org/
+http://pysqlite.org/
+
+To build a dummy database cd to the src directory and run:
+	> python CreateSiteDB.py 
+	
+To start the server cd to the src directory and run:
+	> python Site.py

@@ -1,0 +1,53 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--SiteDB--> 
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>SiteDB :: Site Directory</title>
+	
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/sitedb_survey.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/sitedb_sites.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/common/css/container.css"/>
+	<link rel="stylesheet" type="text/css" href="$basepath/Common/mastheadcss?site=sitedb"/>
+	
+	<script type="text/javascript" src="$basepath/YUI/yui/js/?script=yahoo.js&script=dom.js&script=event.js&script=container_core.js&script=connection.js&script=dragdrop.js&script=container.js"></script>
+	<script type="text/javascript" src="$basepath/YUI/yui/js/?script=imageloader.js"></script>
+	<script type="text/javascript" src="$basepath/Common/masthead"></script>
+	<script type="text/javascript" src="$basepath/common/js/editentries.js"></script>
+	<script type="text/javascript" src="$basepath/common/js/rolesandgroups.js"></script>
+	
+	<script type="text/javascript">
+	function footerMenuText(){
+		return [{title: "CMS Site Directory", link: "$basepath/sitelist/", label: "Site Directory"}, 
+		{title: "Person Directory", link: "$basepath/people/", label: "Person Directory"},
+		{title: "SiteDB Reports", link: "$basepath/reports/", label: "Reports"},
+		{title: "Pledged Resources for CMS", link: "$basepath/resources/", label: "Resource Pledges"},
+		{title: "SiteDB Surveys", link: "$basepath/surveys/", label: "Surveys"}]
+	}
+</script>
+	</head>
+	<body onload="insertMastHead ('sitedb', 'SiteDB Navigation :: ', true); GetGroups ('$basepath'); GetRoles('$basepath', '$group');" id="content">
+		<div class="toparea">
+			<h1>SiteDB :: The $group group</h1>
+			<p>See people and their roles in the group '$group'</p>
+			<div>
+				<div id="rolelist"/>
+			</div>
+		</div>	
+#if $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")	or $context.SecurityDBApi.hasGroupResponsibility($token.dn, $group, "Global Admin")
+		<div>
+			<h5>Mange membership of $group</h5>
+			<p>Add member</p>
+			<p>Remove member</p>
+			<p><a href="$basepath/rolesandgroups/addRole/">Add Role</a></p>
+			<p><a href="$basepath/rolesandgroups/deleteRole/">Delete Role</a></p>
+		</div>
+#end if
+		<div>
+			<h5>List of groups:</h5>
+			<div id="grouplist"/>
+		</div>
+	</body>
+</html>

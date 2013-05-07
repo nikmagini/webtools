@@ -1,0 +1,73 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea"><h1>SiteDB :: Edit Person</h1></div>
+		<form method="get" action="$basepath/editsite/">
+			<div>
+				<input type="hidden" value="editperson" name="region"/>
+				<input type="hidden" name="id" value="$persondata['id']"/>
+				<!-- contact information -->
+				<table border="1" width="800">
+					<tr>
+						<td><p class="center">Surname</p></td>
+						<td><p class="center">Forename</p></td>
+						<td><p class="center">Distinguished Name</p></td>
+						<td><p class="center">Username</p></td>
+					</tr>			
+					<tr>
+						#for f in "surname", "forename", "dn", "username"
+						<td><p><input name="$f" size="25" value="$persondata[$f]"/></p></td>
+						#end for
+					</tr>		
+				</table>
+				<table border="1" width="600">
+					<tr>
+						<td><p class="center">Email</p></td>
+						<td><p class="center">Primary Phone</p></td>
+						<td><p class="center">Secondary Phone</p></td>
+						<td><p class="center">IM Handle</p></td>
+					</tr>			
+					<tr>
+						#for f in "email", "phone1", "phone2", 
+						<td><p><input name="$f" size="25" value="$persondata[$f]"/></p></td>
+						#end for
+						<td><p><select name="im_type">
+						#set imdict = {"none":"IM Service","aol":"AIM","msn":"MSN","gtalk":"gTalk/Google Talk","icq":"ICQ","jabber":"Jabber"}
+						#set im_handle = "none:none".split(':',1)
+						#try
+						#if $persondata["im_handle"] != 'None'
+						#set im_handle = $persondata["im_handle"].split(':',1)
+						#end if
+						#except
+						#set im_handle = "none:none"
+						#end try	
+							#for i in $imdict.keys()
+							#if $i == $im_handle[0]  
+							<option value="$i" selected>$imdict[$i]</option>
+							#else
+							<option value="$i">$imdict[$i]</option>
+							#end if
+							#end for
+						</select>
+						
+						<input name="im_handle" size="25" value="$im_handle[1]"/></p></td>
+					</tr>		
+				</table>
+				#for a in $siteassocdata
+				#set val = str($siteassocdata[$a]['site_id']) + "_" + str($siteassocdata[$a]['role_id'])
+				<input type="hidden" name="siteassoc" value="$val">
+				#end for
+				<input type="submit" value="Edit these details"/>	
+			<div>
+		</form>
+		<div><p>You have the following site and group roles. </p>
+		<div class="sql">
+		#for a in $siteassocdata
+		<pre>$siteassocdata[$a]['role'] : $siteassocdata[$a]['name']</pre>
+		#end for
+		#for a in $groupassocdata
+		<pre>$groupassocdata[$a]['role'] : $groupassocdata[$a]['name']</pre>
+		#end for
+		</div>
+		</div>
+	</body>
+</html>

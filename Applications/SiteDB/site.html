@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>SiteDB :: $SITENAME :: Site Details</title>
+		<link rel="stylesheet" type="text/css" href="css/sitedb_survey.css"/>
+		<link rel="stylesheet" type="text/css" href="css/sitedb_sites.css"/>
+		<script type="text/javascript" src="../yui/build/yahoo/yahoo.js"></script>
+		<script type="text/javascript" src="../yui/build/dom/dom.js"></script>
+		<script type="text/javascript" src="../yui/build/event/event.js"></script> 
+		<script type="text/javascript" src="../yui/build/container/container_core.js"></script>
+		<script type="text/javascript" src="../yui/build/connection/connection-min.js"></script>
+		<script type="text/javascript" src="../Common/masthead"></script>
+		<script type="text/javascript">
+			var div; 
+			var siteCE;
+			var response="";
+			var handleSuccess = function(o){
+				if(o.responseText !== undefined){
+					div.setBody('<p class="small">' + siteCE + '</p>' + o.responseText);
+					div.render();
+				  div.show();
+				}
+			}
+			
+			var handleFailure = function(o){
+				if(o.responseText !== undefined){
+					div.setBody('<p class="small">' + siteCE + '</p><p>Failed to retrive installation information</p>');
+				}
+			}
+			
+			var callback =
+			{
+			  success:handleSuccess,
+			  failure:handleFailure
+			};
+			
+			
+			function makeRequest(){
+				//To run as file://
+				netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
+				div = new YAHOO.widget.Overlay("software", { visible:true } );
+				//Loop over CE's if necessary here
+				siteCE="ce-fzk.gridka.de";
+				var sUrl = "http://www-ekp.physik.uni-karlsruhe.de/~rabbertz/cmsmon/web/cmsmon_site.php?site=" + siteCE + "&sw=CMSSW";
+				var request = YAHOO.util.Connect.asyncRequest('GET', sUrl, callback);
+			}
+		//	YAHOO.util.Event.addListener(window,'load',makeRequest);
+		</script>
+</head>
+<body onload="insertMastHead ('sitedb');" id="content">
+<div class="toparea">
+<h1>$SITENAME :: Site Details</h1>
+<p><a href="$URL">$SITENAME</a> is a $TIER site based in $COUNTRY. It runs the $GRID_TYPE grid middleware.</p>
+</div>
+<div class="left leftborder">
+	<h3>CMS Contacts</h3>
+	<div class="box">
+		<dl>
+			<dt><a href="mailto:$CONTACT_EMAIL">$CONTACT_NAME</a></dt>
+			<dd><b>$ROLENAME(s)</b> <br/> $CONTACT_PHONE_1, $CONTACT_PHONE_2</dd>
+			<dt><a href="mailto:$CONTACT_EMAIL">$CONTACT_NAME</a></dt>
+			<dd><b>$ROLENAME(s)</b> <br/> $CONTACT_PHONE_1, $CONTACT_PHONE_2</dd>
+			<dt><a href="mailto:$CONTACT_EMAIL">$CONTACT_NAME</a></dt>
+			<dd><b>$ROLENAME(s)</b> <br/> $CONTACT_PHONE_1, $CONTACT_PHONE_2</dd>
+		</dl>
+	</div>
+	<h3>Associated Sites</h3>
+	<!-- If the site has parents... -->
+	<div class="box">
+	<h6>Parent Sites</h6>
+		<ul>
+			<li><a href="site.html?site=$PARENT_NAME_1">$PARENT_NAME_1</a></li>
+			<li><a href="site.html?site=$PARENT_NAME_2">$PARENT_NAME_2</a></li>
+		</ul>
+	</div>
+	<!-- If the site has children... -->
+	<div class="box">
+	<h6>Child Sites</h6>
+		<ul>
+			<li><a href="site.html?site=$CHILD_NAME_1">$CHILD_NAME_1</a></li>
+			<li><a href="site.html?site=$CHILD_NAME_2">$CHILD_NAME_2</a></li>
+			<li><a href="site.html?site=$CHILD_NAME_3">$CHILD_NAME_3</a></li>
+		</ul>
+	</div>
+</div>
+<div class="left leftborder">
+	<h3>Site monitoring</h3>
+	<div class="box">	
+		<p>Some plots from PhEDEx/Dashboard, number of file block registered at the site etc</p>
+	</div>
+	<h3>Site Configuration</h3>
+	<div class="box">	
+		<p><a href="">GOCDB Link</a></p>
+		<dl>
+			<dt>Storage Element(s):</dt>
+			<dd><b>$SE_1</b>, $SE_2, $SE_3</dd>
+			<dt>Compute Element(s):</dt>
+			<dd><b>$CE_1</b>, $CE_2, $CE_3</dd>
+		</dl>
+	</div>
+	<h3>Software on $SITENAME</h3>
+	<div id="software" class="box">
+	<iframe src="http://www-ekp.physik.uni-karlsruhe.de/~rabbertz/cmsmon/web/cmsmon_site.php?site=ce-fzk.gridka.de&sw=CMSSW"/></div>
+</div>
+</body>
+</html>

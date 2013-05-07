@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import cx_Oracle
+from optparse import OptionParser
+
+usage =  "usage: %prog [options]\n"
+usage += "\nWrite the basics to SiteDB.  To be used before importing site data from PhEDEx"
+parser = OptionParser(usage=usage)
+parser.add_option('-c', '--connect', dest='connect', help='DB connection string')
+(opts, args) = parser.parse_args()
+
+if not opts.connect: raise Exception("Use -c CONNECT")
+con = cx_Oracle.connect(opts.connect)
+cur = con.cursor()
+
+INSERT_TIER0 = '''insert into tier (id, pos, name) values (tier_sq.nextval, 0, 'Tier 0')'''
+INSERT_TIER1 = '''insert into tier (id, pos, name) values (tier_sq.nextval, 1, 'Tier 1')'''
+INSERT_TIER2 = '''insert into tier (id, pos, name) values (tier_sq.nextval, 2, 'Tier 2')'''
+INSERT_TIER3 = '''insert into tier (id, pos, name) values (tier_sq.nextval, 3, 'Tier 3')'''
+INSERT_TIER4 = '''insert into tier (id, pos, name) values (tier_sq.nextval, 4, 'Opportunistic/Other')'''
+cur.execute(INSERT_TIER0)
+cur.execute(INSERT_TIER1)
+cur.execute(INSERT_TIER2)
+cur.execute(INSERT_TIER3)
+cur.execute(INSERT_TIER4)
+
+cur.execute('select * from tier')
+print cur.fetchall()
+
+scope=['site',"Individual", "Higgs", "SUSYBSM", "EWK", "Top", "QCD","Diffraction", "OnSel", 
+			"Bphys", "Muons", "Egamma","JetMet", "PFlowTau", "Btag", 'phedex', 'global']
+for s in scope:
+      INSERT_GROUPS = '''insert into user_group (id, name) values(user_group_sq.nextval, '%s')''' % (s)
+      cur.execute(INSERT_GROUPS)
+      
+cur.execute('select * from user_group')
+print cur.fetchall()
+
+role=['Global Admin','Site Admin','Site Executive','PhEDEx Contact','Data Manager', 
+      'Production Manager', 'Request Manager', 'Central Operations']
+
+for r in role:
+      INSERT_ROLE1 = '''insert into role (id, title) values(role_sq.nextval, '%s')''' % (r)
+      cur.execute(INSERT_ROLE1)
+
+cur.execute('select * from role')
+print cur.fetchall()
+
+con.commit()

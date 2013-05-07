@@ -1,0 +1,41 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl	
+		<div class="toparea">
+		<!-- Edit 8th April -->
+			<h1>SiteDB :: Add Site</h1>
+		</div>
+#if $context.SecurityDBApi.hasGroupResponsibility($token.dn, "global", "Global Admin")		
+		<form method="get" action="$basepath/editsite/">
+		<input type="hidden" value="addsite" name="region"/>
+		<table border="1" width="400">
+			<tr>
+				<td><p class="center">Site name</p></td>
+				<td><p class="center">CMS name</p></td>
+				<td><p class="center">SAM name</p></td>
+				<td><p class="center">City/Country</p></td>
+				<td><p class="center">Site tier</p></td>
+			</tr>
+			<tr>
+				<td align="center"><p><input name="sitename" size="15" value="Site name"/></p></td>
+				<td align="center"><p><input name="cmsname" size="15" value="CMS name"/></p></td>
+				<td align="center"><p><input name="samname" size="15" value="SAM name"/></p></td>
+				<td align="center"><p><input name="location" size="15" value="City/Country"/></p></td>
+				<td align="center"><select name="tier">
+						<option value="1">Tier 0</option>		
+						<option value="2">Tier 1</option>
+						<option value="3">Tier 2</option>
+						<option value="4">Tier 3</option>
+						<option value="5">Opportunistic/Other</option>
+				</select></td>
+			</tr>
+			<tr>
+				<td colspan="3" align="right"><p>Submit entry</p></td>	
+				<td colspan="2"><p><input type="submit" value="Add new site"></p></td>
+			</tr>
+		</table>
+		</form>
+#else		
+		<p>You do not have permission to add a site. Please <a href="https://savannah.cern.ch/support/?func=additem&group=cmscompinfrasup&category_id=107&severity=9&assigned_to=2964">contact Data Operations</a>.</p>
+#end if		
+	</body>
+</html>

@@ -1,0 +1,21 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sitedb-data>        
+<report>
+	<title>$config.get("description", "title")</title>
+  <description>$config.get("description", "text")</description>
+  <author href="$basepath/people/?name=$config.get("description", "author")">$config.get("description", "author")</author>
+  <restricted>$config.get("report", "restricted")</restricted>
+  <sql>
+      $config.get("report", "statement")
+  </sql>
+  <result>
+  #for d in $data
+  	<item id="$d">
+  	#for f in $config.get("report", "fields").split(', ')
+  		<$f>$data[$d][$f]</$f>
+  	#end for
+  	</item>
+  #end for
+  </result>
+</report>

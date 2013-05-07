@@ -1,0 +1,31 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea">
+			<h1>SiteDB :: Select survey</h1>
+			<p> Below is a list of all surveys, and the roles that are 
+			expected to answer them. To see the responses to a survey click on it's name.</p>
+			#if $warning != "None"
+			<p style="color:red; font-weight:bold">$warning</p>
+			#end if			
+		</div>
+		<div class="left leftborder">
+			#set list = $survey.getFullSurveyList
+			<table>
+				<tr>
+					<td><p><b>Survey name</b></p></td>
+					<td><p><b>Who should answer</b></p></td>
+				</tr>
+			#for l in $list
+				<tr>				
+					<td>
+						<p><a href="viewresults?surveyid=$l">$list[$l].name</a></p>
+					</td>
+					<td>
+						<p>$list[$l].wholist[0][0] representing $list[$l].wholist[0][1]</p>
+					</td>
+				</tr>
+			#end for
+			</table>
+		</div>
+ 	</body>
+</html>		

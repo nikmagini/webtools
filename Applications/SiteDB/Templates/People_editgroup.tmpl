@@ -1,0 +1,76 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea"><h1>SiteDB :: Edit Person</h1></div>
+		<form method="get" action="$basepath/editsite/">
+			<div>
+				<input type="hidden" value="editpersongroup" name="region"/>
+				<input type="hidden" name="id" value="$persondata['id']"/>
+					<!-- contact information -->
+					<table border="1" width="800">
+						<tr>
+							<td><p class="center">Surname</p></td>
+							<td><p class="center">Forename</p></td>
+							<td><p class="center">Distinguished Name</p></td>
+							<td><p class="center">Username</p></td>
+						</tr>
+						<tr>
+							#for f in "surname", "forename", "dn", "username"
+							<td><p><input name="$f" size="25" value="$persondata[$f]"/></p></td>
+							#end for
+						</tr>
+						<tr>							
+							<td><p class="center">Email</p></td>
+							<td><p class="center">Primary Phone</p></td>
+							<td><p class="center">Secondary Phone</p></td>
+							<td><p class="center">Global Admin</p></td>
+						</tr>			
+						<tr>
+							#for f in "email", "phone1", "phone2"
+							<td><p><input name="$f" size="25" value="$persondata[$f]"/></p></td>
+							#end for
+							#set check=''
+							#if len($assocdata) != 0:
+							#for a in $assocdata
+ 						        #if 'Global Admin' in $assocdata[a]['role']:
+             						#set check=' checked="checked"'
+              						#end if
+              						#end for
+							#end if		
+              						<td align="center"><input type="checkbox" name="globaladmin" value="true"$check/></td>
+						</tr>		
+					</table>	
+					<br/>
+					<!-- group/role infomation -->
+          <table border="1" width="800">
+            <tr>
+              <td><p>Group Name</p></td>
+              #for r in $roledata
+              <td><p>$roledata[r]['title']</p></td>
+              #end for
+            </tr>
+            #set val = ""
+            #set checked = ""
+            #for s in $groupdata
+            <tr>  
+              <td><p><b>$groupdata[s]['name']</b></p></td>
+              #for r in $roledata
+              #if len($assocdata) != 0
+              #set checked = ''
+              #for a in $assocdata:
+              #if $assocdata[a]['gid'] == $groupdata[s]['id'] and $assocdata[a]['role'] == $roledata[r]['title']:
+              #set checked = ' checked="checked"'
+              #end if
+              #end for
+              #end if
+              #set val = str($groupdata[$s]['id']) + "_" + str($roledata[$r]['id'])
+              <td align="center"><input type="checkbox" name="groupassoc" value="$val"$checked/></td>
+              #end for
+            </tr>
+            #end for
+          </table>
+          <br/>
+					<input type="submit" value="Edit these details"/>
+			<div>
+		</form>
+	</body>
+</html>

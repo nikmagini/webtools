@@ -1,0 +1,20 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+        <!--Top area-->
+        <div class="toparea">
+        #set name = $survey.getSurvey($id)[0]['name']
+            <h1>SiteDB :: Add question to $name survey</h1>
+            <p>Your survey is completed and has been sent to the people you requested.
+            You can view you </p>
+        </div>
+        <div class="leftborder" style="width: 600px">
+            #set size = len($survey.getQuestionList($id))
+            <p>Survey $name has $size questions</p>
+            <code style="color:grey">
+            #for q in $survey.getQuestionList($id)
+$q ...<br/>
+            #end for
+            </code>
+        </div>
+    </body>
+</html>

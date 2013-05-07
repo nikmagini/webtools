@@ -1,0 +1,43 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+        
+		<div class="toparea"><h1>$config.get("description", "title")</h1>
+        <p>$config.get("description", "text")</p>
+        <p class="small grey">Report authored by <a href="$basepath/people/?name=$config.get("description", "author")">$config.get("description", "author")</a></p>
+        <p class="small grey">Restricted: $config.get("report", "restricted")</p>
+    </div>
+    <div class="toparea" id="report">
+        <div>
+            <h5>Report Result</h5>
+            <div class="sql">$result</div>
+        </div>
+        <div>
+            <h5>Report SQL</h5>
+            <p class="small"><a href="javascript:toggleLayer('sqldiv');">show/hide</a></p>
+            <div class="sql" id="sqldiv" style="display:none;">$config.get("report", "statement")</div>
+        </div>
+        <br/>
+    </div>    
+    <div>
+        <p><a href="$basepath/reports/showXMLReport/?reportid=$report"><img src="$basepath/common/images/feeds.png" alt="Show XML feed" border="0"/></a> <a href="$basepath/reports/showXMLReport/?reportid=$report">Show XML feed</a></p>
+        <p>Show a different report $reportlist</p>
+    </div>
+    <script>
+    function toggleLayer( whichLayer )
+{
+  var elem, vis;
+  if( document.getElementById ) // this is the way the standards work
+    elem = document.getElementById( whichLayer );
+  else if( document.all ) // this is the way old msie versions work
+      elem = document.all[whichLayer];
+  else if( document.layers ) // this is the way nn4 works
+    elem = document.layers[whichLayer];
+  vis = elem.style;
+  // if the style.display value is blank we try to figure it out here
+  if(vis.display==''&&elem.offsetWidth!=undefined&&elem.offsetHeight!=undefined)
+    vis.display = (elem.offsetWidth!=0&&elem.offsetHeight!=0)?'block':'none';
+  vis.display = (vis.display==''||vis.display=='block')?'none':'block';
+}
+		</script>
+	</body>
+</html>

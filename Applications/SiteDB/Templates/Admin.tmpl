@@ -1,0 +1,53 @@
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+<html>
+
+#set selsitemaps = """select cms_name.name, site.name from site
+            join SITE_CMS_NAME_MAP on SITE_CMS_NAME_MAP.SITE_ID = site.id
+            join cms_name on cms_name.id = SITE_CMS_NAME_MAP.CMS_NAME_ID
+            order by site.tier, site.name"""
+#set selnamelesssites = """select name, id from site where
+      id not in (select SITE_ID from SITE_CMS_NAME_MAP)
+      order by tier, name"""
+#set selunusednames = """ select name, id from cms_name where
+      id not in (select cms_name_id from site_cms_name_map)
+      order by name"""
+
+#set sitemaps = $db.getDataObject(['name', 'site'], $selsitemaps)
+#set namelesssites = $db.getDataObject(['name', 'id'], $selnamelesssites)
+#set unusednames = $db.getDataObject(['name', 'id'], $selunusednames)
+
+<h1>For admin eyes only</h1>
+
+<h2>CMS Naming conventions</h2>
+
+<h3>CMS Names with no Site</h3>
+  #for n in $unusednames.keys():
+		<p>$unusednames[$n]['name'] - <a href="$basepath/admin/edit?cmsname=$unusednames[$n]['name']">Associate Site</a></p>
+	#end for
+	
+<h3>Site with no CMS Name</h3>
+	#for n in $namelesssites.keys():
+		<p>$namelesssites[$n]['name'] - <a href="$basepath/admin/edit?sitename=$namelesssites[$n]['name']">Add CMS Name</a></p>
+	#end for
+	
+
+<h3>CMS Names and Sites</h3>
+
+<table border="1">
+	<tr>
+		<td>CMS Name</td>
+		<td>Site Name</td>
+	</tr>
+	
+	#for n in $sitemaps:
+	<tr>
+		<td>$sitemaps[$n]['name']</td>
+		<td>$sitemaps[$n]['site']</td>
+	</tr>
+	#end for
+</table>
+
+<h2>Reports to check</h2>
+.. on it's way...
+
+</html>

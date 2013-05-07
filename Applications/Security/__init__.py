@@ -1,3 +1,0 @@
-"""
-Our implementation of OpenID
-"""

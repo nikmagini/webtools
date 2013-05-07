@@ -1,0 +1,129 @@
+@CHARSET "UTF-8";
+.toparea{
+	padding: 10px;
+	margin: 0px;
+	margin-bottom: 10px;
+	border-bottom:solid rgb(150, 0, 0) 2px;
+}
+.leftborder{
+	border-right:dotted rgb(150, 0, 0) 1px;
+	padding: 5px;
+	margin:5px;
+}
+.indent{
+	margin-left:20px;
+}
+.nomargin{
+	margin:0px;	
+}
+.box{
+	border:solid rgb(190, 190, 190) 1px;
+	width:300px;
+	margin:10px;
+	margin-left:20px;
+}
+.box li{
+	font-size: 12px;
+	font-family: 'Lucida Grande', verdana, helvetica, arial, sans-serif;
+	line-height: 20px;
+	margin: 0px;
+	padding: 0px;
+	/**display: inline;**/
+}
+.box dl{
+	font-size: 12px;
+	font-family: arial;  
+	line-height: 20px;
+	margin: 0px;
+	padding: 10px;
+	/**display: inline;**/
+}
+.box dl dd{
+	padding-left: 0px;
+	margin-left: 10px;
+	margin-bottom: 3px;
+}
+.box dl dt{
+	font-size: 13px;
+	margin-bottom: 2px;
+}
+hr{
+	color: rgb(190, 190, 190);
+}
+#software{
+	height: 150px;
+	overflow: scroll;
+}
+#software ol{
+	list-style: disc inside;
+	margin: 0px;
+}
+blockquote{
+	font-size: 10px; 
+	font-family: 'Lucida Grande', verdana, helvetica, arial, sans-serif;
+	color: rgb(80, 80, 80);
+	margin: 10px; 
+	margin-left: 30px;
+	padding:0px; 
+}
+.sitedbmenu{
+	font-size: 10px; 
+	font-family: 'Lucida Grande', verdana, helvetica, arial, sans-serif;
+	color: rgb(80, 80, 80);
+	border-bottom:solid rgb(190, 190, 190) 1px;
+	padding-bottom: 5px;
+}
+.sitedbmenu ul{
+	display: inline;
+	margin-left: 10px; 
+}
+.sitedbmenu ul li{
+	display: inline;
+	padding: 5px;
+}
+.grouplist{
+	margin-left: 30px;
+	display: inline;
+	padding: 5px;
+	list-style-type: disc
+}
+.grey{
+	color: rgb(80, 80, 80);
+}
+.sql{
+	color: rgb(80, 0, 0);
+	border:solid rgb(80, 0, 0) 1px;
+	padding: 5px;	
+	padding-left: 15px;	
+	vertical-align:middle;
+	align:center;
+	background:rgb(255, 215, 160);
+	width:400px;	
+	font-family: 'Monaco', courier;
+	font-size: 12px; 
+}
+a {
+	color: rgb(150, 0, 0);
+}
+a:hover{
+	color: rgb(80, 80, 80);
+	text-decoration: underline;
+}
+a:active{
+	color: rgb(80, 80, 80);
+	text-decoration: underline;
+}
+a:visited{
+	color: rgb(150, 0, 0);
+}
+.closer{
+	margin:5px;
+}
+select{
+	font-size: 12px;
+	font-family: 'Lucida Grande', verdana, helvetica, arial, sans-serif;
+}
+img {
+	margin-right:2px;
+	
+}

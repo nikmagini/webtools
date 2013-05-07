@@ -1,0 +1,137 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<div class="toparea">
+			<h1>SiteDB :: Site Survey</h1>
+			<p>On this page the base of the survey is created; the name of the 
+			survey, the duration the survey is valid and who to survey. On the 
+			following pages you can enter the questions being asked.</p>
+			#if $warning != "None"
+			<p style="color:red; font-weight:bold">$warning</p>
+			#end if
+		</div>
+		<div>
+			<form action="$basepath/surveys/createsurvey" method="get">
+				<div>
+					#if $kwargs != "None"
+					<input name="name" size="15" value="$kwargs.name"/>
+					#else
+					<input name="name" size="15" value="Survey name"/>
+					#end if
+					<input type="hidden" name="startdate" value="$timestamp"/>
+					<select name="duration">
+					#set lengths = {'None':'Duration', '1':'1 week', '2':'2 weeks', '3':'3 weeks', '4':'4 weeks', '8':'2 months'}
+					#for l in 'None', '1', '2', '3', '4', '8'
+						#if "duration" in $kwargs
+							#if $l == $kwargs.duration
+						<option value="$l" selected>$lengths[$l]</option>
+							#else
+						<option value="$l">$lengths[$l]</option>
+							#end if
+						#elif l == 'None'
+						<option value="$l" selected>$lengths[$l]</option>
+						#else
+						<option value="$l">$lengths[$l]</option>
+						#end if
+					#end for
+					</select>
+					<input type="submit" value="Add Questions"/>
+					<input type="reset"/>
+				</div>
+				<div class="left leftborder">
+					<div class="toparea"><p>Survey Site Responsibles</p></div>
+					<table id="sitewho">
+						<tr>
+							<td/>
+							#for r in $siteroles
+							<td><p>$siteroles[$r].title</p></td>
+							#end for
+						</tr>
+						<tr>
+							<td><p>All</p></td>
+							#for r in $siteroles
+							<td align="center">
+							#set id = "100_" + str($siteroles[$r]['id'])
+							#if "sitewho" in $kwargs
+								#if $id in $kwargs.sitewho
+								<input type="checkbox" name="sitewho" checked="checked" value="$id"/>
+								#else
+								<input type="checkbox" name="sitewho" value="$id"/>
+								#end if
+							#else
+								<input type="checkbox" name="sitewho" value="$id"/>
+							#end if
+							</td>
+							#end for
+						</tr>
+							#for t in $tiers
+						<tr>
+							<td><p>$tiers[$t].name</p></td>
+								#for r in $siteroles
+								#set id = str($tiers[$t]['id']) + "_" + str($siteroles[$r]['id'])
+							<td align="center">
+							#if "sitewho" in $kwargs
+								#if $id in $kwargs.sitewho
+								<input type="checkbox" name="sitewho" checked="checked" value="$id"/>
+								#else
+								<input type="checkbox" name="sitewho" value="$id"/>
+								#end if
+							#else
+								<input type="checkbox" name="sitewho" value="$id"/>
+							#end if
+							</td>
+								#end for	
+						</tr>				
+							#end for
+					</table>
+				</div>
+###				<div  class="left leftborder">
+###					<div class="toparea"><p>Survey Group Responsibles</p></div>
+###					<table id="groupwho">
+###						<tr>
+###							<td/>
+###							#for r in $grouproles
+###							<td><p>$grouproles[$r].title</p></td>
+###							#end for
+###						</tr>
+###						<tr>
+###							<td><p>All</p></td>
+###							#for r in $grouproles
+###							<td align="center">
+###							#if "groupwho" in $kwargs
+###								#if "0_$r" in $kwargs.groupwho
+###								<input type="checkbox" name="groupwho" checked="checked" value="0_$r"/>
+###								#else
+###								<input type="checkbox" name="groupwho" value="0_$r"/>
+###								#end if
+###							#else
+###								<input type="checkbox" name="groupwho" value="0_$r"/>
+###							#end if
+###							</td>
+###							#end for
+###						</tr>
+###							#for t in $groups
+###						<tr>
+###							<td><p>$groups[$t].name</p></td>
+###								#for r in $grouproles
+###								#set id = str($t) + "_" + str($r)
+###							<td align="center">
+###							#if "groupwho" in $kwargs
+###								#if $id in $kwargs.groupwho
+###								<input type="checkbox" name="groupwho" checked="checked" value="$id"/>
+###								#else
+###								<input type="checkbox" name="groupwho" value="$id"/>
+###								#end if
+###							#else
+###								<input type="checkbox" name="groupwho" value="$id"/>
+###							#end if
+###							</td>
+###								#end for	
+###						</tr>				
+###							#end for
+###					</table>	
+###				</div>
+			</form>
+		</div>
+ 	</body>
+</html>

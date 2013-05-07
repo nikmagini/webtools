@@ -1,0 +1,71 @@
+                	#if len($resource['CE']) == 0 and len($resource['SE']) == 0 and len($nodes) == 0:
+                		<p>No configuration for the site has been registered</p>
+                	#else
+                    <dl>
+                    		<dt><b>Site Configuration in CVS</b></dt>
+                    		<dd id="cvs"></dd>
+                        <dt><b>GOC information</b></dt>
+                        <dd><a href="$config.get("endpoint","goc")$goc">GOCDB Link</a></dd>
+                        <dt><b>GSTAT information</b></dt>
+                        <dd id="gstat"></dd>
+                        <dt><b>Compute Element(s)</b></dt>
+                        <dd>
+												#if len($resource['CE']) == 0
+												<b>No Compute Element registered</b>
+												#else
+												#if len($resource['CE']) == 1
+												<b>$resource['CE'][0]['fqdn']</b>
+												#else
+												#for r in $resource['CE']
+												#if $resource['CE'][r]['is_primary'] == 'y'
+												<b>$resource['CE'][r]['fqdn']</b>
+												#else
+												$resource['CE'][r]['fqdn']
+												#end if
+												#end for
+												#end if
+												#end if
+                        </dd>
+                        <dt><b>Storage Element(s)</b><br/>
+                        <span class="small">Click to see DBS entries</span></dt>
+                        <dd>
+												#if len($resource['SE']) == 0
+												<b>No Storage Element registered</b>
+												#else
+												#if len($resource['SE']) == 1
+												<b><a href="$config.get("endpoint", "dbs")$resource['SE'][0]['fqdn']">$resource['SE'][0]['fqdn']</a></b>
+												#else
+												#for r in $resource['SE']
+												#if $resource['SE'][r]['is_primary'] == 'y'
+												<b><a href="$config.get("endpoint", "dbs")$resource['SE'][0]['fqdn']">$resource['SE'][r]['fqdn']</a></b>
+												#else
+												<a href="$config.get("endpoint", "dbs")$resource['SE'][0]['fqdn']">$resource['SE'][r]['fqdn']</a>
+												#end if
+												#end for
+												#end if
+												#end if
+												#if len($resource['SQUID']) > 0
+												<dt><b>Hosted Squid Servers</b><br/>
+												<span class="small">Click to go to monitoring</span></dt>
+                        <dd><span id="squid"></span>
+                        #for r in $resource['SQUID']
+                        <span class="small">$resource['SQUID'][r]['fqdn']</span>
+												#end for
+												#end if
+                        </dd>
+                    #if len($nodes) == 0:
+                    <dt><b>No PhEDEx node registered!</b></dt>
+                    <dd>Please update SiteDB with the PhEDEx node.</dd>
+                    #else
+                    <dt>
+                    	<b>PhEDEx configuration</b><br/>
+                    	<span class="small">Click to subscribe data</span>
+                    </dt>
+                    <dd>
+                    	#for n in $nodes
+	                    <a href="$config.get("endpoint", "phedex")$nodes[$n]['node'].strip()">$nodes[$n]['node'].strip()</a>
+	                    #end for
+                    </dd>
+                    #end if
+                    </dl>
+                	#end if

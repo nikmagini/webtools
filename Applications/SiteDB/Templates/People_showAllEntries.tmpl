@@ -1,0 +1,72 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+#set admin = False 
+
+		#if $context.SecurityDBApi.hasRole($token.dn, "Global Admin")
+			#set admin = True
+
+                #else if $site 
+			#if $context.SecurityDBApi.hasSiteResponsibility($token.dn, $site, "Site Executive|Site Admin")
+				#set admin = True
+			#end if
+		#else
+			#set admin = False
+		#end if
+		<div class="toparea">
+			<h1>SiteDB :: Person Directory</h1>
+			<p>Edit your own details <a href="$basepath/people/editme?username=$token.dn">here</a></p>
+			<p>
+			#for a in 'ABCDEFGHIJKLMNOPQRSTUVWXY'
+				<a href="$basepath/people/showAllEntries?initial=$a&site=$site&all=$all">$a</a> | 
+			#end for
+			<a href="$basepath/people/showAllEntries?initial=Z&site=$site&all=$all">Z</a>
+			</p>				
+		</div>
+		<table border="1">
+			<tr>
+				#for f in 'surname', 'forename', 'email':
+				<td><p align="center">$f.title()</p></td>			
+				#end for
+				#if $admin:
+				<td><p align="center">Delete</p></td>
+				<td><p align="center">Edit Sites</p></td>
+				<td><p align="center">Edit Groups</p></td>
+				<td><p align="center">Become User</p></td>
+				#end if
+			</tr>
+			#for p in $data
+			<!-- $p -->
+			<tr>
+				#for f in 'surname', 'forename', 'email':
+				#if $data[$p][$f]
+				<td><p>$data[$p][$f]</p></td>
+				#else
+				<td><p>NA</p></td>
+				#end if				
+				#end for
+                                #set siteedit = ''
+                                #if $site
+                                #set siteedit = "&site=" + $site
+                                #end if
+				#if $admin
+				<td><p><a href="$basepath/people/delete?id=$data[$p]['id']">delete</a></p></td>
+				<td><p><a href="$basepath/people/edit?id=$data[$p]['id']$siteedit">edit</a></p></td>
+			        #if $data[$p]['username'] and $context.SecurityDBApi.hasRole($token.dn, "Global Admin")
+                                <td><p><a href="$basepath/people/editgroup?id=$data[$p]['id']$siteedit">edit</a></p></td>
+				<td><p><a href="$basepath/SecurityModule/becomeUser?username=$data[$p]['username']&requestedPage=$basepath/sitelist/">switch</a></p></td>
+				#else
+				<td><p>NA</p></td>
+                                <td><p>NA</p></td>
+				#end if
+				#end if
+			<tr>
+			#end for			
+		</table>
+		#if $admin
+		#if $site
+		<p><a href="$basepath/people/showAllEntries?site=$site&all=true">Add a person with a hypernews account to site</a></p>
+		<p><a href="$basepath/people/addPerson?site=$site">Add new person</a> who doesn't have a hypernews account</p>
+    #end if
+		#end if
+	</body>
+</html>

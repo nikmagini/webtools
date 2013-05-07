@@ -1,0 +1,11 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<!--Top area-->
+		<div class="toparea"><h1>SiteDB :: Site Survey</h1>
+	    <p>There are $survey.surveyCount().open open survey's, from a total of $survey.surveyCount().total.</p>
+	    <p><a href="$basepath/surveys/createsurvey">Create a new survey</a></p>
+	    <p><a href="$basepath/surveys/completesurvey">Respond to a survey</a></p>
+	    <p><a href="$basepath/surveys/viewresults">View survey results</a></p>
+		</div>
+ 	</body>
+</html>

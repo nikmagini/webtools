@@ -1,0 +1,14 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+#if $redirect != 'None'
+<META HTTP-EQUIV="Refresh" CONTENT="5; URL=$basepath/$redirect">
+#end if
+		<div class="toparea">
+			<h1>SiteDB :: Error!</h1>
+		</div>
+		<div class="left leftborder">
+			<p>$msg</p>
+			<p>If you think this is something the developers need to know about please file a <a href="https://savannah.cern.ch/projects/webtools/">savannah report</a>.</p>
+		</div>
+	</body>
+</html>

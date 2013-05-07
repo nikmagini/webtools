@@ -1,0 +1,25 @@
+#include $context.SiteDBCfg.templatesPath + "/base.tmpl"
+#set $basepath = $context.CmdLineArgs.opts.baseUrl
+		<div class="toparea">
+			<h1>SiteDB :: Add $type.title()</h1>
+			<p>Create a new $type here.</p>
+		</div>
+		<div>
+			<form method="post" action="$basepath/rolesandgroups/edit">
+				<input type="hidden" name="type" value="$type">
+				<input type="hidden" name="task" value="add">
+				<table border="1" width="400">
+					<tr>
+						<td><p class="center">$type.title() name</p></td>
+						<td align="center"><p><input name="name" size="15" value="$type.title() name"/></p></td>
+					</tr>
+					<tr>
+						<td align="center"><p>Submit entry</p></td>	
+						<td align="center"><p><input type="submit" value="Add new $type"></p></td>
+					</tr>
+				</table>
+				<p><a href="$basepath/rolesandgroups/">Back to management pages</a></p>
+			</form>			
+		</div>
+	</body>
+</html>
