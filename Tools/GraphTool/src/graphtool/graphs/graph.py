@@ -108,6 +108,9 @@ def draw_empty( text, file, kw ):
     if isinstance( file , StringIO.StringIO ) or type(file) == cStringIO_type:
         canvas.draw()
         size = canvas.get_renderer().get_canvas_width_height()
+        # Hack: for some unknown reason in py27 this call is returning floats.
+        #       Convert it to int coordinates so that PIL doesnt complain.
+        size = (int(size[0]),int(size[1]))
         buf=canvas.tostring_argb()
         im=PILImage.fromstring('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
         a, r, g, b = im.split()
@@ -611,8 +614,6 @@ class Graph( object ):
 
         # Create our two axes, and set properties
         ax = fig.add_axes( ax_rect )
-        frame = ax.get_frame()
-        frame.set_fill( False )
 
         # If requested, make x/y axis logarithmic
         if find_info('log_xaxis',kw,self.metadata,'False').find('r') >= 0:
@@ -771,6 +772,9 @@ class Graph( object ):
             renderer.finalize()
         else:
             size = canvas.get_renderer().get_canvas_width_height()
+            # Hack: for some unknown reason in py27 this call is returning floats.
+            #       Convert it to int coordinates so that PIL doesnt complain.
+            size = (int(size[0]),int(size[1]))
             buf = canvas.tostring_argb()
             im = PILImage.fromstring('RGBA', size, buf, 'raw', 'RGBA', 0, 1)
 
