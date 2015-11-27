@@ -3,6 +3,7 @@
 A command-line interface to GraphTool, for users who'd rather deal in CSV than
 with python.
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -88,7 +89,7 @@ def main():
         Graph = getattr(graphs, 'Basic' + graph)
     except:
         raise
-        print >> sys.stderr, "Unknown graph type: %s" % graph
+        print("Unknown graph type: %s" % graph, file=sys.stderr)
         sys.exit(1)
     g = Graph()
     if graph in ['QualityMap', 'Cumulative', 'StackedBar', 'SimpleStackedBar', \
@@ -97,7 +98,7 @@ def main():
     elif graph in ['Bar', 'Pie']:
         data, metadata = parse_csv_p(sys.stdin, **kw)
     else:
-        print >> sys.stderr, "Unknown graph type: %s" % graph
+        print("Unknown graph type: %s" % graph, file=sys.stderr)
         sys.exit(1)
     if output == '-':
         fp = sys.stdout

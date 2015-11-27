@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import os
 import sys
@@ -20,7 +21,7 @@ class GraphToolLogging(XmlConfig):
 
     def __init__(self, *args, **kw):
         super(GraphToolLogging, self).__init__(*args, **kw)
-        print "Started up a logging object."
+        print("Started up a logging object.")
 
     def parse_dom(self):
         super(GraphToolLogging, self).parse_dom()
@@ -35,9 +36,9 @@ class GraphToolLogging(XmlConfig):
                 filename = resource_filename(module, filename)
             filename = os.path.expandvars(filename)
             if not os.path.exists(filename):
-                print >> sys.stderr, "Error: Unable to load logging config " \
-                    "file: %s." % filename
+                print("Error: Unable to load logging config " \
+                    "file: %s." % filename, file=sys.stderr)
                 continue
             logging.config.fileConfig(filename)
-            print "Loaded logging config %s." % filename
+            print("Loaded logging config %s." % filename)
 

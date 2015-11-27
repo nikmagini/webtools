@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 class Entry:
 
@@ -181,10 +182,10 @@ if __name__ == '__main__':
     entries = []
     for i in range(20):
         entries.append(Entry(size=random.random()))
-        print entries[-1].size
+        print(entries[-1].size)
     sum = alg.totalSize(entries)
     #for entry in entries:
     #    entry.size /= sum
     alg.layout(entries, bounds=bounds)
     for entry in entries:
-        print entry.bounds
+        print(entry.bounds)

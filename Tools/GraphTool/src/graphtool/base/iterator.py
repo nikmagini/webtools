@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from graphtool.base.xml_config import XmlConfig
 import sys, cStringIO
@@ -72,12 +73,12 @@ class ObjectIterator( XmlConfig ):
   def list( self, *args, **kw ):
     out = cStringIO.StringIO()
     if len(self.known_commands.keys()) == 0:
-      print >> out, "\nNo queries known!\n"
+      print("\nNo queries known!\n", file=out)
     else:
-      print >> out, "Currently available queries:"
+      print("Currently available queries:", file=out)
       for query_name in self.known_commands.keys():
-        print >> out, " - %s" % query_name
-      print >> out, ""
+        print(" - %s" % query_name, file=out)
+      print("", file=out)
     return out.getvalue()
 
 

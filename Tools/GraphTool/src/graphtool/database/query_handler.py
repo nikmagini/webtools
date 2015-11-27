@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import re
 import types
@@ -24,12 +25,12 @@ class QueryHandler( ObjectIterator ):
 
   def list( self, *args, **kw ):
     if len(self.known_commands.keys()) == 0:
-      print "\nNo queries known!\n"
+      print("\nNo queries known!\n")
     else:
-      print "Currently available queries:"
+      print("Currently available queries:")
       for query_name in self.known_commands.keys():
-        print " - %s" % query_name
-      print ""    
+        print(" - %s" % query_name)
+      print("")    
 
 def echo( *args, **kw ):
   if len(args) > 1:

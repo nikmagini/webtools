@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import types, cStringIO, datetime, calendar, time, threading, datetime
 from graphtool.base.xml_config import XmlConfig, import_module
@@ -158,10 +159,10 @@ class SqlQuery( XmlConfig ):
   def _do_multiprocess_child(self, q, function, results, vars):
       try:
           t = time.time()
-          print "in sqlqueries multiprocess child"
+          print("in sqlqueries multiprocess child")
           results, metadata = function(results, **vars)
-          print "in sqlqueries multiprocess child: finished processing in %.2f " \
-              "seconds." % (time.time()-t)
+          print("in sqlqueries multiprocess child: finished processing in %.2f " \
+              "seconds." % (time.time()-t))
           q.put((results, metadata))
       except:
           q.put(None)
@@ -323,9 +324,9 @@ class Sql( XmlConfig ):
     base_sql = base_query.metadata.get('sql',None)
     if base_sql == None:
       out = cStringIO.StringIO()
-      print >> out, "Could not find chained object's SQL for %s" % self.dom.getAttribute('name')
-      print >> out, "\n%s\n" % str(ae)
-      print >> out, base_query
+      print("Could not find chained object's SQL for %s" % self.dom.getAttribute('name'), file=out)
+      print("\n%s\n" % str(ae), file=out)
+      print(base_query, file=out)
       raise Exception( out.getvalue() )
     if not isinstance(base_sql, Sql):
       raise Exception("Object's SQL is not of type Sql")

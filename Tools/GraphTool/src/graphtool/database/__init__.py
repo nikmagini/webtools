@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import threading, sys, cStringIO, traceback, re
 from graphtool.base import GraphToolInfo
@@ -84,13 +85,13 @@ class DatabaseInfo( GraphToolInfo ):
     elif len(args) == 2:
       filename, section = args
     else:
-      print "Wrong number of arguments to getDbParams (contact developers!)"
+      print("Wrong number of arguments to getDbParams (contact developers!)")
       sys.exit(-1)
     try:
       file = open( filename, 'r' )
     except:
-      print "Unable to open specified DBParam file %s" % filename
-      print "Check the path and the permissions."
+      print("Unable to open specified DBParam file %s" % filename)
+      print("Check the path and the permissions.")
       sys.exit(-1)
     rlines = file.readlines()
     info = {}
@@ -106,8 +107,8 @@ class DatabaseInfo( GraphToolInfo ):
       if start_section:
         info[tmp[0]] = tmp[1]
     if start_section == False:
-      print "Could not find section named: %s" % section
-      print "Check capitalization, contents of file.  Failing!"
+      print("Could not find section named: %s" % section)
+      print("Check capitalization, contents of file.  Failing!")
       sys.exit(-1)
     self.info = info
     return info
@@ -176,10 +177,10 @@ class DatabaseInfoV2( XmlConfig ):
           db = m.groups(0)
           raise Exception("Unknown database: %s" % db)
       out = cStringIO.StringIO()
-      print >> out, "\nUnable to successfully query database, exception follows:\n"
-      print >> out, e, "\n"
-      print >> out, "Used sql:\n%s" % sql_string
-      print >> out, "Used vars:", sql_var, "\n"
+      print("\nUnable to successfully query database, exception follows:\n", file=out)
+      print(e, "\n", file=out)
+      print("Used sql:\n%s" % sql_string, file=out)
+      print("Used vars:", sql_var, "\n", file=out)
       traceback.print_exc( file=out )
       #print >> out, "Last Traceback:\n", last_traceback,'\n'
       raise Exception( out.getvalue() )

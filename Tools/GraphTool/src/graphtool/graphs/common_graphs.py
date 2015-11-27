@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import types, datetime, numpy, math
 from graphtool.tools.common import to_timestamp, expand_string, \
@@ -459,7 +460,7 @@ class QualityBarGraph( HorizontalBarGraph ):
         keys = self.sort_keys( results )
         for pivot in keys:
           data = results[pivot]
-          print data, self.color_override
+          print(data, self.color_override)
           if data != None:
             if data in self.color_override:
                 color.append(self.color_override[data])

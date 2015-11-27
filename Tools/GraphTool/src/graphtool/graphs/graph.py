@@ -8,6 +8,7 @@ The idea is to only need to pass the graph's data, the type of graph, and any
 sort of metadata required for the graph, and to come out with a "print-quality"
 graph.
 """
+from __future__ import print_function
 
 # System imports
 import numpy
@@ -197,9 +198,9 @@ class Grapher( Cache, QueryHandler ):
     def _do_multiprocess_child(self, q, graph_instance, results, file, metadata,
             **kw):
         try:
-            print "in multiprocess child"
+            print("in multiprocess child")
             graph_results = graph_instance.run(results, file, metadata, **kw)
-            print "in multiprocess child: finished graph"
+            print("in multiprocess child: finished graph")
             q.put((graph_results, file.getvalue()))
         except:
             q.put(None)
@@ -254,7 +255,7 @@ class Grapher( Cache, QueryHandler ):
                     file = cStringIO.StringIO()
                     graph_instance = graph()
                     if has_multiprocessing:
-                        print "Generating graph in separate process."
+                        print("Generating graph in separate process.")
                         graph_results = self.do_multiprocess(graph_instance,
                             results, file, metadata, **kw)
                     else:
@@ -606,7 +607,7 @@ class Graph( object ):
                     ax_wm.set_frame_on( False )
                     ax_wm.set_clip_on( False )
                 except Exception as e:
-                    print e
+                    print(e)
                     pass
             else:
                 # Do nothing right now.  Write a warning sometime?

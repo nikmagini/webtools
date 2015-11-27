@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 from graphtool.database.query_handler import QueryHandler
 from graphtool.tools.common import expand_string, to_timestamp
@@ -142,12 +143,12 @@ class XmlGenerator( QueryHandler ):
     if graphs and 'base_url' in graphs.metadata:
         base_url = graphs.metadata['base_url']
     else:
-      print "Base URL not specified!"
-      print metadata
+      print("Base URL not specified!")
+      print(metadata)
       if graphs:
-        print graphs.metadata
+        print(graphs.metadata)
       else:
-        print "Graphs not specified"
+        print("Graphs not specified")
       pass 
     my_base_url = self.metadata.get('base_url','')
     gen.startElement( 'attr',{'name':'base_url'} )
@@ -232,7 +233,7 @@ class XmlGenerator( QueryHandler ):
         coords = metadata['grapher'].get_coords( metadata['query'], metadata, **metadata['given_kw'] )
       else: coords = None
     except Exception as e: 
-      print e
+      print(e)
       traceback.print_exc( sys.stdout )
       coords = None
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import os
 import sys
@@ -62,19 +63,19 @@ class GraphToolInfo(object):
       function_name = self.commands[cmd_name]
     except:
       if cmd_name != "default" and (not self.default_accepts_any):
-        print "Command name %s not recognized." % cmd_name
-        print "Try 'phedex-info.py help <class>' for possibly more info."
+        print("Command name %s not recognized." % cmd_name)
+        print("Try 'phedex-info.py help <class>' for possibly more info.")
         return
       elif self.default_accepts_any and ('default' in self.commands.keys()):
         function_name = self.commands['default']
         args = [cmd_name] + list(args)
       else:
-        print "No default command is known for class (contact developers!)"
-        print "Try 'phedex-info.py help <class>' for possibly more info."
+        print("No default command is known for class (contact developers!)")
+        print("Try 'phedex-info.py help <class>' for possibly more info.")
         return
     function = getattr( self, function_name, None )
     if function == None:
-      print "Command name %s mapped, but function not found, doing nothing (contact developers!)." % function_name
+      print("Command name %s mapped, but function not found, doing nothing (contact developers!)." % function_name)
       return
     kw = dict( kwargs )
     for opt in opts:
