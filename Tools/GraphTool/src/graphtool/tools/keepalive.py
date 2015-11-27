@@ -153,7 +153,7 @@ def executeCommand(command, timeOut = 1200):
             command = '#!/bin/bash\n' + command
             aFile.write(command + '\n')
             aFile.close()
-            os.chmod('script.sh', 0755)
+            os.chmod('script.sh', 0o755)
         except (IOError, OSError), msg:
             logging.error("Cannot generate execution script: " + str(msg))
             return
