@@ -125,7 +125,7 @@ class GraphMixIn(Cache):
         if hasattr(self, 'context'):
             for plugin in self.context.PluginManager().plugins():
                 if plugin.name.endswith(self.__class__.__name__) and \
-                                            plugin.options.has_key('baseUrl'):
+                                            'baseUrl' in plugin.options:
                     temp_url = "%s%s" % (temp_url, plugin.options['baseUrl'])
                     
         # set cached value and return

@@ -572,7 +572,7 @@ class StackedBarGraph( PivotGroupGraph ):
         agg_stats[starttime] = 0
     for link, groups in results.items():
       for timebin, value in groups.items():
-        if agg_stats.has_key(timebin):
+        if timebin in agg_stats:
           agg_stats[timebin] += value
         else:
           agg_stats[timebin] = value
@@ -683,7 +683,7 @@ class StackedBarGraph( PivotGroupGraph ):
         key_val = key
       tmp_x.append( key_val )
       tmp_y.append( points[key] )
-      if not bottom.has_key( key ):
+      if key not in bottom:
         if self.log_yaxis:
             bottom[key] = 0.001
         else:
@@ -869,7 +869,7 @@ class StackedLineGraph(StackedBarGraph):
       prev_val = 0
     prev_key = my_times[-1]
     for key in my_times:
-      if not bottom.has_key( key ):
+      if key not in bottom:
         my_bottom_keys = list(bottom_keys)
         my_bottom_keys.append( key )
         my_bottom_keys.sort()
@@ -879,7 +879,7 @@ class StackedLineGraph(StackedBarGraph):
           next_key = my_bottom_keys[ my_bottom_keys.index(key)-1 ]
           next_val = bottom[ next_key ]
           bottom[key] = (prev_bottom_val - next_val)*(key-next_key)/float(prev_key-next_key) + next_val
-      if not points.has_key( key ):
+      if key not in points:
         if key <= points_keys[0] and key != end:
           points[key] = points[points_keys[0]]
         else:
@@ -1015,7 +1015,7 @@ class HorizontalStackedBarGraph( HorizontalGraph, StackedBarGraph ):
                 key_val = key
             tmp_x.append( key_val )
             tmp_y.append( points[key] )
-            if not bottom.has_key( key ):
+            if key not in bottom:
                 if self.log_yaxis:
                     bottom[key] = 0.001
                 else:
@@ -1193,7 +1193,7 @@ class CumulativeGraph( TimeGraph, PivotGroupGraph ):
       prev_val = 0
     prev_key = my_times[-1]
     for key in my_times:
-      if not bottom.has_key( key ):
+      if key not in bottom:
         my_bottom_keys = list(bottom_keys)
         my_bottom_keys.append( key )
         my_bottom_keys.sort()
@@ -1203,7 +1203,7 @@ class CumulativeGraph( TimeGraph, PivotGroupGraph ):
           next_key = my_bottom_keys[ my_bottom_keys.index(key)-1 ]
           next_val = bottom[ next_key ]
           bottom[key] = (prev_bottom_val - next_val)*(key-next_key)/float(prev_key-next_key) + next_val
-      if not points.has_key( key ):
+      if key not in points:
         if key <= points_keys[0] and key != end:
           points[key] = 0
         else:
