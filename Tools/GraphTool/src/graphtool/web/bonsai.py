@@ -133,7 +133,7 @@ class GraphMixIn(Cache):
         return self.mounted_url
         
     def data_generator(self, func):
-        _data_generators[func.func_name] = func
+        _data_generators[func.__name__] = func
         return func
     
     def templateGraph(self, graphName, data, metadata):
