@@ -45,7 +45,7 @@ class GraphToolInfo(object):
       item = self.globals[name]
       if isinstance(item, GraphToolInfo) and (item.is_executable or not must_be_executable):
         my_classes[ name ] = item
-      elif types.TypeType == type(item) and issubclass(item, GraphToolInfo) and (item.is_executable or not must_be_executable):
+      elif isinstance(item, types.TypeType) and issubclass(item, GraphToolInfo) and (item.is_executable or not must_be_executable):
         if item.display_name:
           my_classes[ item.display_name ] = item
         else:

@@ -292,15 +292,15 @@ class Sql( XmlConfig ):
 
   def fill_slot( self, slot, value ):
     for piece in self.pieces:
-      if type(piece) == types.DictType and (slot in piece.keys()):
+      if isinstance(piece, types.DictType) and (slot in piece.keys()):
         piece[slot] = value
   
   def __str__( self ):
     strng = ""
     for piece in self.pieces:
-      if type(piece) == types.StringType:
+      if isinstance(piece, types.StringType):
         strng += " " + piece + " "
-      elif type(piece) == types.DictType:
+      elif isinstance(piece, types.DictType):
         for key in piece.keys():
           strng += " " + str(piece[key]) + " "
     return strng
@@ -327,12 +327,12 @@ class Sql( XmlConfig ):
       print >> out, "\n%s\n" % str(ae)
       print >> out, base_query
       raise Exception( out.getvalue() )
-    if type(base_sql) != Sql:
+    if not isinstance(base_sql, Sql):
       raise Exception("Object's SQL is not of type Sql")
     for piece in base_sql.pieces:
-      if type(piece) == types.StringType:
+      if isinstance(piece, types.StringType):
         self.pieces.append( str(piece) )
-      elif type(piece) == types.DictType:
+      elif isinstance(piece, types.DictType):
         self.pieces.append( dict(piece) )
     for filler in self.dom.getElementsByTagName('filler'):
       name = filler.getAttribute('name')
@@ -366,7 +366,7 @@ class Inputs( XmlConfig ):
     elif my_type == 'timestamp':
       return to_timestamp( string )
     elif my_type == 'bool' or my_type == 'boolean':
-        if type(string) != types.StringType:
+        if not isinstance(string, types.StringType):
             return bool(string)
         if string.lower().strip() == 'false':
             return False

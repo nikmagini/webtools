@@ -178,7 +178,7 @@ class BarGraph( PivotGraph ):
         # Start off by looking for strings in the groups.
         self.string_mode = False
         for pivot in getattr(self,'parsed_data',self.results).keys():
-            if type(pivot) == types.StringType:
+            if isinstance(pivot, types.StringType):
                 self.string_mode = True; break
             if self.string_mode == True: break
         
@@ -277,7 +277,7 @@ class HorizontalBarGraph( HorizontalGraph, BarGraph ):
                 tmp_x.append( transformed + offset )
             else:
                 tmp_x.append( pivot + offset )
-            if type(data) == types.TupleType:
+            if isinstance(data, types.TupleType):
                 tmp_y.append( float(data[0]) )
                 yerr.append( float(data[1]) )
             else:
@@ -385,7 +385,7 @@ class HorizontalGroupedBarGraph(HorizontalBarGraph):
             base = tmp_x[-1]
             tmp_x.extend([base+bar_width*(i+1) for i in range(data_len-1)])
             for datum in data:
-                if type(datum) == types.TupleType:
+                if isinstance(datum, types.TupleType):
                     tmp_y.append( float(datum[0]) )
                     yerr.append( float(datum[1]) )
                 else:
@@ -527,7 +527,7 @@ class QualityBarGraph( HorizontalBarGraph ):
             for key, val in results.items():
                 found_data = True
                 first_data = val
-            if type(first_data) == types.TupleType or type(found_data) == types.ListType:
+            if isinstance(first_data, types.TupleType) or isinstance(found_data, types.ListType):
                 assert len(first_data) == 2
                 self.two_column = True
             else:
@@ -648,7 +648,7 @@ class StackedBarGraph( PivotGroupGraph ):
     self.string_mode = False
     for pivot, groups in getattr(self,'parsed_data',self.results).items():
       for group in groups.keys():
-        if type(group) == types.StringType:
+        if isinstance(group, types.StringType):
           self.string_mode = True; break
       if self.string_mode == True: break
         
@@ -740,8 +740,7 @@ class StackedBarGraph( PivotGroupGraph ):
 class ScatterPlot(PivotGroupGraph):
 
     def scatter(self, data, color):
-        groups = data.keys()
-        groups.sort()
+        groups = sorted(data.keys())
         patches = []
         xcoords = []
         ycoords = []
@@ -1543,7 +1542,7 @@ class QualityMap( HorizontalGraph, TimeGraph, PivotGroupGraph ):
                 break
             if found_data: break
         if found_data:
-            if type(first_data) == types.TupleType or type(found_data) == types.ListType:
+            if isinstance(first_data, types.TupleType) or isinstance(found_data, types.ListType):
                 assert len(first_data) >= 2
                 self.two_column = True
             else:
@@ -1602,8 +1601,7 @@ class QualityMap( HorizontalGraph, TimeGraph, PivotGroupGraph ):
           
         # Create a legend for the specified colors
         legend = self.metadata['legend']
-        default_labels = list(legend.keys())
-        default_labels.sort()
+        default_labels = sorted(legend.keys())
         labels = getattr(self, 'legend_labels', default_labels)
         labels = list(labels)
         labels.reverse()
@@ -1689,8 +1687,7 @@ class QualityMap( HorizontalGraph, TimeGraph, PivotGroupGraph ):
     results = self.parsed_data
     for link in self.sort_keys(results):
       coords[link] = {}
-      l= results[link].keys()
-      l.sort()
+      l= sorted(results[link].keys())
       l.reverse()
       try:
           previous_left=date2num( convert_to_datetime(self.metadata.get('endtime')) )

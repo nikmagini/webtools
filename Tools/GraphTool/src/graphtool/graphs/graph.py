@@ -105,7 +105,7 @@ def draw_empty( text, file, kw ):
     fig.set_dpi( dpi )
     fig.set_facecolor('white')
     fig.text( .5, .5, text, horizontalalignment='center' )
-    if isinstance( file , StringIO.StringIO ) or type(file) == cStringIO_type:
+    if isinstance( file , StringIO.StringIO ) or isinstance(file, cStringIO_type):
         canvas.draw()
         size = canvas.get_renderer().get_canvas_width_height()
         # Hack: PIL requires int coordinates with py27
@@ -323,7 +323,7 @@ class Graph( object ):
           - write_graph: Post-draw operations, and write the graph to `file`.
           - get_coords: Generates the coordinates of the objects in the graph.
         """
-        if types.DictType != type(metadata):
+        if not isinstance(metadata, types.DictType):
             raise Exception( "Wrong types; run's signature is <dict> results,"
                                "<file> file, <dict> metadata\nPassed types were"
                                " %s, %s, %s." % (type(results), type(file),
@@ -467,9 +467,9 @@ class Graph( object ):
         bottom_text = getattr( self, 'bottom_text', None )
         kw = self.kw
 
-        if type(legend) == types.StringType and legend.lower().find('f') > -1:
+        if isinstance(legend, types.StringType) and legend.lower().find('f') > -1:
             legend = False
-        elif type(legend) == types.StringType:
+        elif isinstance(legend, types.StringType):
             legend = True
 
         prefs = self.prefs
@@ -1091,7 +1091,7 @@ class PivotGraph( Graph ):
         Otherwise, attempt to take the absolute value of that item.  If that
         fails, just return -1.
         """
-        if type(item) == types.TupleType:
+        if isinstance(item, types.TupleType):
             return abs(item[0])
         try:
             return abs(item)
@@ -1130,7 +1130,7 @@ class PivotGraph( Graph ):
 class SummarizePivotGroupGraph(PivotGroupGraph):
 
     def value_size(self, item):
-        if type(item) == types.TupleType:
+        if isinstance(item, types.TupleType):
             return abs(item[0])
         try:
             return abs(item)
@@ -1138,7 +1138,7 @@ class SummarizePivotGroupGraph(PivotGroupGraph):
             return -1
 
     def add_grouping(self, old_val, new_val):
-        if type(old_val) == types.TupleType:
+        if isinstance(old_val, types.TupleType):
             result = list(old_val)
             for i in range(len(result)):
                 result[i] += new_val[i]
@@ -1160,8 +1160,7 @@ class SummarizePivotGroupGraph(PivotGroupGraph):
             s = self.cumulative_size(groups)
             size_dict[pivot] = s
             cSum += s
-        vals = size_dict.values()
-        vals.sort()
+        vals = sorted(size_dict.values())
         if len(vals) <= level:
             min_val = 0
         else:
@@ -1193,7 +1192,7 @@ class SummarizePivotGroupGraph(PivotGroupGraph):
 class SummarizePivotGraph(PivotGraph):
 
     def value_size(self, item):
-        if type(item) == types.TupleType:
+        if isinstance(item, types.TupleType):
             return abs(item[0])
         try:
             return abs(item)
@@ -1201,7 +1200,7 @@ class SummarizePivotGraph(PivotGraph):
             return -1
 
     def add_key(self, old_val, new_val):
-        if type(old_val) == types.TupleType:
+        if isinstance(old_val, types.TupleType):
             result = list(old_val)
             for i in range(len(result)):
                 result[i] += new_val[i]
@@ -1217,8 +1216,7 @@ class SummarizePivotGraph(PivotGraph):
             s = self.value_size(groups)
             size_dict[pivot] = s
             cSum += s
-        vals = size_dict.values()
-        vals.sort()
+        vals = sorted(size_dict.values())
         if len(vals) <= level:
             min_val = 0
         else:

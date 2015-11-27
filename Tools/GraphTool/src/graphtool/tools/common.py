@@ -43,11 +43,11 @@ datestrings = ['%x %X', '%x', '%Y-%m-%d %H:%M:%S']
 def convert_to_datetime( string ):
       results = None
       orig_string = str( string )
-      if type(string) == datetime.datetime or \
-         type(string) == types.FloatType or \
-         type(string) == types.IntType:
+      if isinstance(string, datetime.datetime) or \
+         isinstance(string, types.FloatType) or \
+         isinstance(string, types.IntType):
         results = string
-      elif type(string) == str and string.isdigit():
+      elif isinstance(string, str) and string.isdigit():
         results = int(string)
       else:
         t = None
@@ -68,9 +68,9 @@ def convert_to_datetime( string ):
           except:
             raise ValueError("Unable to create time from string!")
 
-      if type(results) == types.FloatType or type(results) == types.IntType:
+      if isinstance(results, types.FloatType) or isinstance(results, types.IntType):
         results = datetime.datetime.utcfromtimestamp( int(results) )
-      elif type(results) == datetime.datetime:
+      elif isinstance(results, datetime.datetime):
         pass
       else:
         raise ValueError( "Unknown datetime type!" )

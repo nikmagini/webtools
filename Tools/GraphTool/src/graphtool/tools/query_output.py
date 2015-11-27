@@ -261,7 +261,7 @@ class XmlGenerator( QueryHandler ):
         if coords:
           try:
             groups = coords[pivot]
-            if type(grouping) == datetime.datetime and (not (grouping in groups.keys()) ):
+            if isinstance(grouping, datetime.datetime) and (not (grouping in groups.keys()) ):
               kw['coords'] = groups[to_timestamp(grouping)]
             else: kw['coords'] = groups[grouping] 
           except Exception as e:
@@ -339,7 +339,7 @@ class XmlGenerator( QueryHandler ):
        return 'pivot',{'name':str(pivot)}
 
   def addData( self, data, gen, coords=None, **kw ):
-        if type(data) != types.TupleType:
+        if not isinstance(data, types.TupleType):
           my_data = [  data ]
         else:
           my_data = data

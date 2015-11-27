@@ -58,22 +58,22 @@ def make_entry( row, cols, transform=None, row_size=None, **kw ):
 def add_data( old_data, row, results_cols ):
   if len(results_cols) > 1:
     for i in range(len(results_cols)):
-      if type(row[results_cols[i]]) == types.StringType:
+      if isinstance(row[results_cols[i]], types.StringType):
         try:
           old_data[i] += float(row[results_cols[i]])
         except:
           old_data[i] += '\n' + row[results_cols[i]]
-      elif type(row[results_cols[i]]) == array.array:
+      elif isinstance(row[results_cols[i]], array.array):
         old_data[i] += '\n' + row[results_cols[i]].tostring()
       else:
         old_data[i] += row[results_cols[i]]
   else:
-    if type(row[results_cols[0]]) == types.StringType:
+    if isinstance(row[results_cols[0]], types.StringType):
       try:
         old_data += float( row[results_cols[0]] )
       except: 
         old_data += '\n' + row[results_cols[0]]
-    elif type(row[results_cols[0]]) == array.array:
+    elif isinstance(row[results_cols[0]], array.array):
       old_data += '\n' + row[results_cols[0]].tostring()
     else:
       new_data = row[results_cols[0]]
@@ -88,7 +88,7 @@ def new_data( row, results_cols, len_results_cols=None ):
   if len(results_cols) > 1:
     my_results = []
     for i in range(len_results_cols):
-      if type( row[results_cols[i]] ) == array.array: my_results.append( row[results_cols[i]].tostring() )
+      if isinstance(row[results_cols[i]], array.array): my_results.append( row[results_cols[i]].tostring() )
       else:
         try:
           my_results.append( float(row[results_cols[i]]) )
@@ -96,7 +96,7 @@ def new_data( row, results_cols, len_results_cols=None ):
           my_results.append( row[results_cols[i]] )
     return my_results
   else:
-    if type( row[results_cols[0]] ) == array.array: return row[results_cols[0]].tostring()
+    if isinstance(row[results_cols[0]], array.array): return row[results_cols[0]].tostring()
     else:
       try:
         return float(row[results_cols[0]] )
@@ -284,8 +284,7 @@ def cumulative_pivot_group_parser( sql_results, pivots="0,1", grouping="2", resu
       groups.add( my_group )
       pivots.add( my_pivot )
 
-    groups = list(groups)
-    groups.sort()
+    groups = sorted(groups)
 
     if len(groups) > 0:
       min_span = groups[-1]
@@ -388,8 +387,7 @@ def pivot_group_parser_plus( sql_results, pivots="0,1", grouping="2", results="3
       groups.add( my_group )
       pivots.add( my_pivot )
 
-    groups = list(groups)
-    groups.sort()
+    groups = sorted(groups)
 
     if len(groups) > 0:
       min_span = groups[-1]

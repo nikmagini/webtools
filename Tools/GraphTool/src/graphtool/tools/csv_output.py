@@ -51,8 +51,7 @@ class CsvGenerator(QueryHandler):
         gen.write(metadata.get('pivot_name', 'Unknown Pivot') + ',')
         gen.write(metadata.get('column_names') + '\n')
 
-        keys = data.keys()
-        keys.sort()
+        keys = sorted(data.keys())
         keys.reverse()
         for pivot in keys:
             datum = data[pivot]
@@ -77,7 +76,7 @@ class CsvGenerator(QueryHandler):
         return grouping_attrs
 
     def addData( self, data, gen, coords=None, **kw ):
-        if type(data) != types.TupleType:
+        if not isinstance(data, types.TupleType):
           my_data = [  data ]
         else:
           my_data = data
