@@ -129,7 +129,7 @@ class XmlQuery( XmlConfig ):
       module = import_module( modname )
       try:
         function = getattr( module, funcname )
-      except Exception, e:
+      except Exception as e:
         raise Exception( "\nCould not import %s from %s; exception follows.\n%s" % (funcname, modname, str(e)) )
 
     return function

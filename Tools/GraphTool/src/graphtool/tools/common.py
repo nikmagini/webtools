@@ -94,7 +94,7 @@ def import_module( module_name ):
     for mod_name in module_list[1:]:
       try:
         module = getattr( module, mod_name )
-      except AttributeError, ae:
+      except AttributeError as ae:
         #print "Module %s has no submodule named %s" % (str(module), mod_name)
         raise ae
   return module 

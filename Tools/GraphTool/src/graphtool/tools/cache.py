@@ -54,7 +54,7 @@ class Cache( GraphToolInfo ):
           try:
               del self.cache[ oldest ]
               del self.cache_timestamps[ oldest ]
-          except Exception, e:
+          except Exception as e:
               log.exception(e)
           #gclog.info("Deleted object has %i referrers" % gc.get_referrers(results))
           #log.debug("Removed an object from cache %s; %i left." % (self.name, \
@@ -144,14 +144,14 @@ class Cache( GraphToolInfo ):
             return results
         try:
             results = function(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             self.remove_progress( hash_str )
             st = StringIO.StringIO()
             traceback.print_exc( file=st )
             raise Exception( "Error in creating graph, hash_str:%s\n%s\n%s" % (hash_str, str(e), st.getvalue()) )
         try:
             self.add_cache(hash_str, results)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
         self.remove_progress( hash_str )
         return results

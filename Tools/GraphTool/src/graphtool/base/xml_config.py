@@ -44,7 +44,7 @@ class XmlConfig( GraphToolInfo ):
         else:
           setattr( obj, name, value )
           if child_metadata: child_metadata[name] = value
-      except Exception, e:
+      except Exception as e:
         raise Exception( "Unable to set attribute %s to value %s\n%s" % (name, value, str(e)) )
 
   def parse_file( self, file=None ):
@@ -60,7 +60,7 @@ class XmlConfig( GraphToolInfo ):
     if type(file) == types.StringType or type(file) == types.UnicodeType:
       try:
         file = open( file, 'r' )
-      except Exception, e:
+      except Exception as e:
         raise Exception( "The XML parser tried to open file named %s, but failed.  Check to make sure it exists and is readable.  Initial exception: %s" % (file,str(e)) )
     elif 'read' in file.__dict__.keys():
       pass
@@ -79,7 +79,7 @@ class XmlConfig( GraphToolInfo ):
     if file != '':
       try:
         XmlConfig( file=file )
-      except Exception, e:
+      except Exception as e:
         st = cStringIO.StringIO()
         traceback.print_exc( file=st )
         raise Exception( "Error in parsing file %s:\n%s\n%s" % (file, str(e), st.getvalue()) )
@@ -88,14 +88,14 @@ class XmlConfig( GraphToolInfo ):
     if data_file != '' and module_name != '':
       try:
         pkg_resources = __import__('pkg_resources')
-      except ImportError, ie:
+      except ImportError as ie:
         raise Exception("File %s tried to import a data file, which requires" \
             " the setuptools package.  The import failed; is it installed?" % \
                 file)
       filename = pkg_resources.resource_filename(module_name, data_file)
       try:
           XmlConfig(file=filename)
-      except Exception, e:
+      except Exception as e:
           st = cStringIO.StringIO()
           traceback.print_exc( file=st )
           raise Exception("Error in parsing file %s:\n%s\n%s" % \

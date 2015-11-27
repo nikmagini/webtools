@@ -25,13 +25,13 @@ except:
 try:    
     import MySQLdb
     mysql_present = True
-except Exception, e:
+except Exception as e:
     mysql_present = False
 
 try:
     from pysqlite2 import dbapi2 as sqlite
     sqlite_present = True
-except Exception, e:
+except Exception as e:
     sqlite_present = False
     try:
         import sqlite3 as sqlite
@@ -158,7 +158,7 @@ class DBConnection( Cache ):
         return results
       try:
         results = self._execute_statement( statement, vars )
-      except Exception, e:
+      except Exception as e:
         self.remove_progress( hash_str )
         st = cStringIO.StringIO()
         traceback.print_exc( file=st )
@@ -513,7 +513,7 @@ class SqliteDatabase( DBConnection ):
     try:
       curs.execute( statement, vars )
       rows = curs.fetchall()
-    except Exception, e:
+    except Exception as e:
       self.release_cursor( curs )
       raise e
     self.release_cursor( curs )

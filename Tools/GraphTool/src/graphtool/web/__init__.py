@@ -49,7 +49,7 @@ class WebHost( XmlConfig ):
             if module_name != '':
                 try:
                     pkg_resources = __import__('pkg_resources')
-                except ImportError, ie:
+                except ImportError as ie:
                     raise Exception("Loading a config file from a module " \
                         "requires setuptools, which failed to import.")
                 filename = pkg_resources.resource_filename(module_name, \
@@ -123,7 +123,7 @@ class WebHost( XmlConfig ):
         setattr( do, command, func )
         func.__dict__['exposed'] = True
         #print "Adding function %s as %s" % (func_name, command)
-      except Exception, e:
+      except Exception as e:
         raise e
     #print "Mounting instance %s at location %s" % (do, location)
     cherrypy.tree.mount( do, location, config={"/": {'request.show_tracebacks': False}} )

@@ -241,7 +241,7 @@ class Grapher( Cache, QueryHandler ):
                 timer += time.time()
                 try:
                     results, metadata = query( **kw )
-                except Exception, e:
+                except Exception as e:
                     self.remove_progress( hash_str )
                     raise e
                 timer -= time.time()
@@ -260,7 +260,7 @@ class Grapher( Cache, QueryHandler ):
                     else:
                         graph_results = graph_instance.run(results, file,
                         metadata, **kw)
-                except Exception, e:
+                except Exception as e:
                     self.remove_progress(hash_str)
                     st = cStringIO.StringIO()
                     traceback.print_exc(file=st)
@@ -268,7 +268,7 @@ class Grapher( Cache, QueryHandler ):
                                      (hash_str, str(e), st.getvalue()) )
                 try:
                     self.add_cache( hash_str, (graph_results, file.getvalue()) )
-                except Exception, e:
+                except Exception as e:
                     log.exception(e)
             self.remove_progress( hash_str )
             timer += time.time()
@@ -605,7 +605,7 @@ class Graph( object ):
                     ax_wm.axis('off')
                     ax_wm.set_frame_on( False )
                     ax_wm.set_clip_on( False )
-                except Exception, e:
+                except Exception as e:
                     print e
                     pass
             else:
@@ -1095,7 +1095,7 @@ class PivotGraph( Graph ):
             return abs(item[0])
         try:
             return abs(item)
-        except TypeError, te:
+        except TypeError as te:
             return -1
 
     def parse_pivot( self, pivot ):
@@ -1134,7 +1134,7 @@ class SummarizePivotGroupGraph(PivotGroupGraph):
             return abs(item[0])
         try:
             return abs(item)
-        except TypeError, te:
+        except TypeError as te:
             return -1
 
     def add_grouping(self, old_val, new_val):
@@ -1197,7 +1197,7 @@ class SummarizePivotGraph(PivotGraph):
             return abs(item[0])
         try:
             return abs(item)
-        except TypeError, te:
+        except TypeError as te:
             return -1
 
     def add_key(self, old_val, new_val):

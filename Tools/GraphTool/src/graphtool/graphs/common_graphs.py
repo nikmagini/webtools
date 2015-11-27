@@ -65,7 +65,7 @@ class BarGraph( PivotGraph ):
                 data_min, data_max, data_average, data_current = statistics(results, span, True)
             else:
                 data_min, data_max, data_average = statistics(results, span)
-        except Exception, e:
+        except Exception as e:
             values = results.values()
             try:
                 data_max = max(values)
@@ -88,22 +88,22 @@ class BarGraph( PivotGraph ):
         if data_max != None:
             try:
                 retval += "Maximum: " + pretty_float( data_max ) + " " + units
-            except Exception, e:
+            except Exception as e:
                 pass
         if data_min != None:
             try:
                 retval += ", Minimum: " + pretty_float( data_min ) + " " + units
-            except Exception, e:
+            except Exception as e:
                 pass
         if data_average != None:
             try:
                 retval += ", Average: " + pretty_float( data_average ) + " " + units
-            except Exception, e:
+            except Exception as e:
                 pass
         if (self.is_timestamps) and (data_current != None):
             try:
                 retval += ", Current: " + pretty_float( data_current ) + " " + units
-            except Exception, e:
+            except Exception as e:
                 pass
         return retval
 
@@ -160,7 +160,7 @@ class BarGraph( PivotGraph ):
         smap = self.string_map
         try:
             return smap[pivot]
-        except Exception, e:
+        except Exception as e:
             raise Exception( "While transforming strings to coordinates, encountered an unknown string: %s" % group)
 
     def get_coords( self ):
@@ -373,7 +373,7 @@ class HorizontalGroupedBarGraph(HorizontalBarGraph):
                 while len(colors) < data_len:
                     colors += colors
                 my_colors.extend(colors[:data_len])
-            except Exception, e:
+            except Exception as e:
                 #print e
                 raise ValueError("Must pass the HorizontalGroupedBarGraph a " \
                                  "dictionary of sequences.  See example.")
@@ -539,7 +539,7 @@ class QualityBarGraph( HorizontalBarGraph ):
           if self.multi_column:
               try:
                   attempted, done, fail = data[try_column], data[done_column], data[fail_column]
-              except Exception, e:
+              except Exception as e:
                   done = 0; fail = 0;
           if self.two_column:
               done, fail = data
@@ -581,7 +581,7 @@ class StackedBarGraph( PivotGroupGraph ):
             data_min, data_max, data_average, data_current = statistics( agg_stats, span, True )
         else:
             data_min, data_max, data_average = statistics( agg_stats, span )
-    except Exception, e:
+    except Exception as e:
         values = agg_stats.values()
         try: data_max = max(values)
         except: data_max = None
@@ -639,7 +639,7 @@ class StackedBarGraph( PivotGroupGraph ):
       try:
           for group, data in groupings.items():
               new_groupings[smap[group]] = data
-      except Exception, e:
+      except Exception as e:
           raise Exception( "While transforming strings to coordinates, encountered an unknown string: %s" % group)
       return new_groupings
   
@@ -1706,7 +1706,7 @@ class QualityMap( HorizontalGraph, TimeGraph, PivotGroupGraph ):
           if self.multi_column:
               try:
                   try_files, done, fail = data[try_column], data[done_column], data[fail_column]
-              except Exception, e:
+              except Exception as e:
                   continue
           if self.two_column:
               done, fail = data[:2]

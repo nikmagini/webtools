@@ -231,7 +231,7 @@ class XmlGenerator( QueryHandler ):
       if 'grapher' in metadata:
         coords = metadata['grapher'].get_coords( metadata['query'], metadata, **metadata['given_kw'] )
       else: coords = None
-    except Exception, e: 
+    except Exception as e: 
       print e
       traceback.print_exc( sys.stdout )
       coords = None
@@ -264,7 +264,7 @@ class XmlGenerator( QueryHandler ):
             if type(grouping) == datetime.datetime and (not (grouping in groups.keys()) ):
               kw['coords'] = groups[to_timestamp(grouping)]
             else: kw['coords'] = groups[grouping] 
-          except Exception, e:
+          except Exception as e:
             #print "Missing coords", pivot, grouping
             #print e
             pass
@@ -281,7 +281,7 @@ class XmlGenerator( QueryHandler ):
     try:
       if ('grapher' in metadata) and ('name' in metadata):
         coords = metadata['grapher'].get_coords( metadata['query'], metadata, **metadata.get('given_kw',{}) )
-    except Exception, e: pass
+    except Exception as e: pass
 
     attrs = {'kind':'pivot'}
     pivot_name = str(metadata.get('pivot_name',''))

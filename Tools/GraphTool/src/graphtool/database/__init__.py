@@ -13,7 +13,7 @@ except:
 try:
   import MySQLdb
   mysql_present = True
-except Exception, e:
+except Exception as e:
   mysql_present = False
 
 class DatabaseInfo( GraphToolInfo ):
@@ -57,7 +57,7 @@ class DatabaseInfo( GraphToolInfo ):
         assert curs.rowcount > 0
         curs.close()
         mysql_lock.release()
-    except Exception, e:
+    except Exception as e:
       #print e
       return False
     return True
@@ -168,7 +168,7 @@ class DatabaseInfoV2( XmlConfig ):
     try:
       conn = self.conn_manager.get_connection( conn )
       results = conn.execute_statement( sql_string, sql_var )
-    except Exception, e:
+    except Exception as e:
       if len(e.args) == 1:
         msg = str(e.args[0])
         m = re.search('Unknown database \'(.*)\'', msg)

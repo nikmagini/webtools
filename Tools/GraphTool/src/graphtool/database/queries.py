@@ -124,7 +124,7 @@ class SqlQuery( XmlConfig ):
               results.extend( my_results )
               result_lock.release()
               sem.release()
-            except Exception, e:
+            except Exception as e:
               sem.release()
               raise e
         for conn in agg:
@@ -223,7 +223,7 @@ class SqlQuery( XmlConfig ):
       module = import_module( modname )
       try:
         function = getattr( module, funcname )
-      except Exception, e:
+      except Exception as e:
         raise Exception( "\nCould not import %s from %s; exception follows.\n%s" % (funcname, modname, str(e)) )
 
     return function
@@ -256,13 +256,13 @@ class SqlQuery( XmlConfig ):
     try:
       base = self.globals[base_components[0]]
       base_components = base_components[1:]
-    except Exception, e:
+    except Exception as e:
       raise Exception( "Unable to find class %s\n%s" % (base_components[0], str(e)) )
     try:
       obj = base
       for comp in base_components: 
         obj = getattr( obj, comp )
-    except Exception, e:
+    except Exception as e:
       raise Exception( "Unable to find attribute %s in %s.\n%s" % (comp, str(obj), str(e)) )
     return obj
 
