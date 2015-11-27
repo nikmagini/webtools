@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import absolute_import
 
 import os
 import sys
@@ -11,7 +12,7 @@ try:
 except:
     has_resource = False
 
-from xml_config import XmlConfig
+from .xml_config import XmlConfig
 
 # Avoid the warning about no default handlers
 log = logging.getLogger()
