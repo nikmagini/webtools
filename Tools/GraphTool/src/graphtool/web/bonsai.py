@@ -43,7 +43,7 @@ class ImageMapWriter:
         if len(data) == 0: return
         is_pivot_group = False
         for pivot, groupings in data.items():
-            if isinstance(groupings, types.DictType):
+            if isinstance(groupings, dict):
                 is_pivot_group = True; break
         gen.startElement('map',{'name':'map'})
         if is_pivot_group:
@@ -82,7 +82,7 @@ class ImageMapWriter:
         column_units_dict = {}
         # Process data
         data_info = ''
-        if not isinstance( data, types.TupleType ): data = (data,)
+        if not isinstance( data, tuple ): data = (data,)
         for i in range(len(data)):
             if i in column_names_dict: data_info += ('<b>%s: </b>' % column_names_dict[i])
             data_info += str(data[i])

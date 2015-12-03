@@ -44,8 +44,8 @@ def convert_to_datetime( string ):
       results = None
       orig_string = str( string )
       if isinstance(string, datetime.datetime) or \
-         isinstance(string, types.FloatType) or \
-         isinstance(string, types.IntType):
+         isinstance(string, float) or \
+         isinstance(string, int):
         results = string
       elif isinstance(string, str) and string.isdigit():
         results = int(string)
@@ -68,7 +68,7 @@ def convert_to_datetime( string ):
           except:
             raise ValueError("Unable to create time from string!")
 
-      if isinstance(results, types.FloatType) or isinstance(results, types.IntType):
+      if isinstance(results, float) or isinstance(results, int):
         results = datetime.datetime.utcfromtimestamp( int(results) )
       elif isinstance(results, datetime.datetime):
         pass

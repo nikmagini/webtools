@@ -340,7 +340,7 @@ class XmlGenerator( QueryHandler ):
        return 'pivot',{'name':str(pivot)}
 
   def addData( self, data, gen, coords=None, **kw ):
-        if not isinstance(data, types.TupleType):
+        if not isinstance(data, tuple):
           my_data = [  data ]
         else:
           my_data = data

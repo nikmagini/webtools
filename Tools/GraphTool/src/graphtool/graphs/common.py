@@ -180,7 +180,7 @@ def pretty_float( num ):
     except:
         floats=2
     format = "%." + str(floats) + "f"
-    if isinstance(num, types.TupleType):
+    if isinstance(num, tuple):
         return format % float(num[0])
     else:
         try:
