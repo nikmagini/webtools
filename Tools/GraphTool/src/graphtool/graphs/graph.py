@@ -324,7 +324,7 @@ class Graph( object ):
           - write_graph: Post-draw operations, and write the graph to `file`.
           - get_coords: Generates the coordinates of the objects in the graph.
         """
-        if not isinstance(metadata, types.DictType):
+        if not isinstance(metadata, dict):
             raise Exception( "Wrong types; run's signature is <dict> results,"
                                "<file> file, <dict> metadata\nPassed types were"
                                " %s, %s, %s." % (type(results), type(file),
@@ -489,7 +489,7 @@ class Graph( object ):
                 my_type = type( prefs[key] )
                 # bool('false') is true!  That's
                 # why we have to do this override.
-                if my_type == types.BooleanType:
+                if my_type == bool:
                     if str(self.metadata[key]).lower().find('f') >= 0:
                         prefs[key] = False
                     else:
@@ -500,7 +500,7 @@ class Graph( object ):
                 my_type = type( prefs[key] )
                 # bool('false') is true!  That's
                 # why we have to do this override.
-                if my_type == types.BooleanType:
+                if my_type == bool:
                     if str(self.kw[key]).lower().find('f') >= 0:
                         prefs[key] = False
                     else:
@@ -1092,7 +1092,7 @@ class PivotGraph( Graph ):
         Otherwise, attempt to take the absolute value of that item.  If that
         fails, just return -1.
         """
-        if isinstance(item, types.TupleType):
+        if isinstance(item, tuple):
             return abs(item[0])
         try:
             return abs(item)
@@ -1131,7 +1131,7 @@ class PivotGraph( Graph ):
 class SummarizePivotGroupGraph(PivotGroupGraph):
 
     def value_size(self, item):
-        if isinstance(item, types.TupleType):
+        if isinstance(item, tuple):
             return abs(item[0])
         try:
             return abs(item)
@@ -1139,7 +1139,7 @@ class SummarizePivotGroupGraph(PivotGroupGraph):
             return -1
 
     def add_grouping(self, old_val, new_val):
-        if isinstance(old_val, types.TupleType):
+        if isinstance(old_val, tuple):
             result = list(old_val)
             for i in range(len(result)):
                 result[i] += new_val[i]
@@ -1193,7 +1193,7 @@ class SummarizePivotGroupGraph(PivotGroupGraph):
 class SummarizePivotGraph(PivotGraph):
 
     def value_size(self, item):
-        if isinstance(item, types.TupleType):
+        if isinstance(item, tuple):
             return abs(item[0])
         try:
             return abs(item)
@@ -1201,7 +1201,7 @@ class SummarizePivotGraph(PivotGraph):
             return -1
 
     def add_key(self, old_val, new_val):
-        if isinstance(old_val, types.TupleType):
+        if isinstance(old_val, tuple):
             result = list(old_val)
             for i in range(len(result)):
                 result[i] += new_val[i]

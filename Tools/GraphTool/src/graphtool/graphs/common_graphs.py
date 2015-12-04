@@ -278,7 +278,7 @@ class HorizontalBarGraph( HorizontalGraph, BarGraph ):
                 tmp_x.append( transformed + offset )
             else:
                 tmp_x.append( pivot + offset )
-            if isinstance(data, types.TupleType):
+            if isinstance(data, tuple):
                 tmp_y.append( float(data[0]) )
                 yerr.append( float(data[1]) )
             else:
@@ -386,7 +386,7 @@ class HorizontalGroupedBarGraph(HorizontalBarGraph):
             base = tmp_x[-1]
             tmp_x.extend([base+bar_width*(i+1) for i in range(data_len-1)])
             for datum in data:
-                if isinstance(datum, types.TupleType):
+                if isinstance(datum, tuple):
                     tmp_y.append( float(datum[0]) )
                     yerr.append( float(datum[1]) )
                 else:
@@ -528,7 +528,7 @@ class QualityBarGraph( HorizontalBarGraph ):
             for key, val in results.items():
                 found_data = True
                 first_data = val
-            if isinstance(first_data, types.TupleType) or isinstance(found_data, types.ListType):
+            if isinstance(first_data, tuple) or isinstance(found_data, list):
                 assert len(first_data) == 2
                 self.two_column = True
             else:
@@ -1543,7 +1543,7 @@ class QualityMap( HorizontalGraph, TimeGraph, PivotGroupGraph ):
                 break
             if found_data: break
         if found_data:
-            if isinstance(first_data, types.TupleType) or isinstance(found_data, types.ListType):
+            if isinstance(first_data, tuple) or isinstance(found_data, list):
                 assert len(first_data) >= 2
                 self.two_column = True
             else:

@@ -293,7 +293,7 @@ class Sql( XmlConfig ):
 
   def fill_slot( self, slot, value ):
     for piece in self.pieces:
-      if isinstance(piece, types.DictType) and (slot in piece.keys()):
+      if isinstance(piece, dict) and (slot in piece.keys()):
         piece[slot] = value
   
   def __str__( self ):
@@ -301,7 +301,7 @@ class Sql( XmlConfig ):
     for piece in self.pieces:
       if isinstance(piece, types.StringType):
         strng += " " + piece + " "
-      elif isinstance(piece, types.DictType):
+      elif isinstance(piece, dict):
         for key in piece.keys():
           strng += " " + str(piece[key]) + " "
     return strng
@@ -333,7 +333,7 @@ class Sql( XmlConfig ):
     for piece in base_sql.pieces:
       if isinstance(piece, types.StringType):
         self.pieces.append( str(piece) )
-      elif isinstance(piece, types.DictType):
+      elif isinstance(piece, dict):
         self.pieces.append( dict(piece) )
     for filler in self.dom.getElementsByTagName('filler'):
       name = filler.getAttribute('name')

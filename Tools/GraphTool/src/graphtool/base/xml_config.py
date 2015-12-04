@@ -24,7 +24,7 @@ class XmlConfig( GraphToolInfo ):
     self.metadata = obj
 
   def parse_attributes( self, obj, dom ):
-    is_dict = isinstance( obj, types.DictType )
+    is_dict = isinstance( obj, dict )
     child_metadata = getattr( obj, 'metadata', False )
     for child in dom.getElementsByTagName('attribute'):
       if not (child in dom.childNodes):
