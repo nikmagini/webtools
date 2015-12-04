@@ -16,7 +16,7 @@ from matplotlib.dates import date2num
 from matplotlib.patches import Polygon, Wedge, Shadow, Rectangle, Circle
 from matplotlib.ticker import FixedLocator, FixedFormatter
 from matplotlib.cbook import is_string_like
-from matplotlib.colors import normalize
+from matplotlib.colors import Normalize
 from pylab import setp, figure, bar, legend, box, axis
 from numpy import linspace
 
@@ -431,7 +431,7 @@ class QualityBarGraph( HorizontalBarGraph ):
         results = getattr(self,'parsed_data',self.results)
         self.color_override = self.metadata.get('color_override', {})
         # Setup the colormapper to get the right colors
-        norms = normalize(0,100)
+        norms = Normalize(0,100)
         mapper = cm.ScalarMappable( cmap=cm.RdYlGn, norm=norms )
         # Hack to make mapper work:
         def get_alpha(*args, **kw):
@@ -1566,7 +1566,7 @@ class QualityMap( HorizontalGraph, TimeGraph, PivotGroupGraph ):
     for bin in timebins: timebins_lu[bin] = counter; counter += 1
 
     # Setup the colormapper to get the right colors
-    norms = normalize(0,100)
+    norms = Normalize(0,100)
     mapper = cm.ScalarMappable(cmap=cm.RdYlGn, norm=norms)
     def get_alpha(*args, **kw):
         return 1.0
