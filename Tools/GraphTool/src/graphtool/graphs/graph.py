@@ -468,9 +468,9 @@ class Graph( object ):
         bottom_text = getattr( self, 'bottom_text', None )
         kw = self.kw
 
-        if isinstance(legend, types.StringType) and legend.lower().find('f') > -1:
+        if isinstance(legend, str) and legend.lower().find('f') > -1:
             legend = False
-        elif isinstance(legend, types.StringType):
+        elif isinstance(legend, str):
             legend = True
 
         prefs = self.prefs
@@ -1392,7 +1392,7 @@ class TimeGraph( DBGraph ):
         super( TimeGraph, self ).setup()
 
         if 'span' in self.metadata and isinstance(self.metadata['span'], \
-                types.StringType):
+                str):
             self.metadata['span'] = float(self.metadata['span'])
 
         vars = dict(self.vars)

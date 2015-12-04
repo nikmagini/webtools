@@ -57,7 +57,7 @@ class XmlConfig( GraphToolInfo ):
     self.globals['_imported_files'].append( file )
 
     # Try to open the file.
-    if isinstance(file, types.StringType) or isinstance(file, types.UnicodeType):
+    if isinstance(file, str) or isinstance(file, unicode):
       try:
         file = open( file, 'r' )
       except Exception as e:

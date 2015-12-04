@@ -179,7 +179,7 @@ class BarGraph( PivotGraph ):
         # Start off by looking for strings in the groups.
         self.string_mode = False
         for pivot in getattr(self,'parsed_data',self.results).keys():
-            if isinstance(pivot, types.StringType):
+            if isinstance(pivot, str):
                 self.string_mode = True; break
             if self.string_mode == True: break
         
@@ -649,7 +649,7 @@ class StackedBarGraph( PivotGroupGraph ):
     self.string_mode = False
     for pivot, groups in getattr(self,'parsed_data',self.results).items():
       for group in groups.keys():
-        if isinstance(group, types.StringType):
+        if isinstance(group, str):
           self.string_mode = True; break
       if self.string_mode == True: break
         
@@ -1106,7 +1106,7 @@ class CumulativeGraph( TimeGraph, PivotGroupGraph ):
     
     is_cumulative = self.metadata.get( 'is_cumulative', None )
 
-    if isinstance(is_cumulative, types.StringType):
+    if isinstance(is_cumulative, str):
         is_cumulative = is_cumulative.lower().find("f") < 0 and \
              is_cumulative.lower().find("n") < 0
     self.is_cumulative = is_cumulative

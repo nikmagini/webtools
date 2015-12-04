@@ -59,7 +59,7 @@ def make_entry( row, cols, transform=None, row_size=None, **kw ):
 def add_data( old_data, row, results_cols ):
   if len(results_cols) > 1:
     for i in range(len(results_cols)):
-      if isinstance(row[results_cols[i]], types.StringType):
+      if isinstance(row[results_cols[i]], str):
         try:
           old_data[i] += float(row[results_cols[i]])
         except:
@@ -69,7 +69,7 @@ def add_data( old_data, row, results_cols ):
       else:
         old_data[i] += row[results_cols[i]]
   else:
-    if isinstance(row[results_cols[0]], types.StringType):
+    if isinstance(row[results_cols[0]], str):
       try:
         old_data += float( row[results_cols[0]] )
       except: 

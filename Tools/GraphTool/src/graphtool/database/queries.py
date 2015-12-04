@@ -299,7 +299,7 @@ class Sql( XmlConfig ):
   def __str__( self ):
     strng = ""
     for piece in self.pieces:
-      if isinstance(piece, types.StringType):
+      if isinstance(piece, str):
         strng += " " + piece + " "
       elif isinstance(piece, dict):
         for key in piece.keys():
@@ -331,7 +331,7 @@ class Sql( XmlConfig ):
     if not isinstance(base_sql, Sql):
       raise Exception("Object's SQL is not of type Sql")
     for piece in base_sql.pieces:
-      if isinstance(piece, types.StringType):
+      if isinstance(piece, str):
         self.pieces.append( str(piece) )
       elif isinstance(piece, dict):
         self.pieces.append( dict(piece) )
@@ -367,7 +367,7 @@ class Inputs( XmlConfig ):
     elif my_type == 'timestamp':
       return to_timestamp( string )
     elif my_type == 'bool' or my_type == 'boolean':
-        if not isinstance(string, types.StringType):
+        if not isinstance(string, str):
             return bool(string)
         if string.lower().strip() == 'false':
             return False
